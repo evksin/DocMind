@@ -1,13 +1,17 @@
 """
 DocMind — минимальный FastAPI backend.
-Фаза 1–2: health-check, БД. Фаза 5: API эндпоинты.
+Фаза 1–2: health-check, БД. Фаза 5: API. Фаза 8: CORS и статика.
 """
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from datetime import datetime
 
 from fastapi import Depends, File, FastAPI, HTTPException, UploadFile
+from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import FileResponse
+from starlette.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -95,6 +99,20 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="DocMind", version="0.1.0", lifespan=lifespan)
 
+# CORS для фронтенда (localhost / 127.0.0.1, типичные порты)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://localhost:8001",
+        "http://127.0.0.1:8001",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.get("/health")
 def health():
@@ -179,6 +197,11 @@ def analyze(body: AnalyzeRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=msg)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        msg = str(e)
+        if "OPENAI_API_KEY" in msg or "ключ" in msg.lower():
+            raise HTTPException(status_code=503, detail="Сервис анализа недоступен: не задан API-ключ.")
+        raise HTTPException(status_code=502, detail="Ошибка при анализе документа. Попробуйте позже.")
 
 
 @app.get("/api/documents/{document_id}/results", response_model=list[ResultListItem])
@@ -249,3 +272,22 @@ def debug_db():
         return {"status": "error", "message": str(e)}
     finally:
         db.close()
+
+
+# Раздача фронтенда: каталог frontend/ в корне проекта
+_FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+if not _FRONTEND_DIR.exists():
+    _FRONTEND_DIR = Path.cwd() / "frontend"
+
+
+@app.get("/")
+def index():
+    """Главная страница — index.html."""
+    index_path = _FRONTEND_DIR / "index.html"
+    if not index_path.exists():
+        raise HTTPException(status_code=404, detail="Frontend not found. Run from project root.")
+    return FileResponse(str(index_path))
+
+
+if _FRONTEND_DIR.exists():
+    app.mount("/", StaticFiles(directory=str(_FRONTEND_DIR), html=True), name="frontend")

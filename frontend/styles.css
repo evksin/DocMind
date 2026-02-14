@@ -176,6 +176,11 @@ button:disabled {
   color: var(--color-muted);
 }
 
+#documents-list li.doc-empty {
+  color: var(--color-muted);
+  font-style: italic;
+}
+
 /* Блок результата */
 #result-content {
   background: var(--color-surface);

@@ -27,8 +27,84 @@
           <option value="explain_simple">Объяснить простыми словами</option>
         </select>
       </p>
-      <button type="submit">Анализировать</button>
+      <button type="submit" id="submit-btn">Анализировать</button>
     </form>
+    <p id="upload-error" style="display:none; color: #b91c1c; margin-top: 0.5rem;"></p>
   </main>
+  <script>
+    (function () {
+      function extractDetail(d) {
+        if (!d || d.detail == null) return '';
+        if (Array.isArray(d.detail)) return d.detail.map(function (x) { return x.msg || x.message || (typeof x === 'string' ? x : ''); }).filter(Boolean).join('. ') || '';
+        return typeof d.detail === 'string' ? d.detail : '';
+      }
+      var params = new URLSearchParams(window.location.search);
+      var userId = params.get('user_id') || sessionStorage.getItem('user_id');
+      if (!userId) {
+        window.location.href = 'index.html';
+        return;
+      }
+      document.getElementById('link-dashboard').href = 'dashboard.html?user_id=' + encodeURIComponent(userId);
+
+      var form = document.getElementById('upload-form');
+      var fileInput = document.getElementById('file-input');
+      var analysisSelect = document.getElementById('analysis-type');
+      var submitBtn = document.getElementById('submit-btn');
+      var errorEl = document.getElementById('upload-error');
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        errorEl.style.display = 'none';
+        var file = fileInput.files && fileInput.files[0];
+        if (!file) {
+          errorEl.textContent = 'Выберите файл.';
+          errorEl.style.display = 'block';
+          return;
+        }
+        var analysisType = analysisSelect.value;
+        if (!analysisType) {
+          errorEl.textContent = 'Выберите тип анализа.';
+          errorEl.style.display = 'block';
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Загрузка…';
+
+        var formData = new FormData();
+        formData.append('file', file, file.name);
+
+        fetch('/api/users/' + encodeURIComponent(userId) + '/documents', {
+          method: 'POST',
+          body: formData
+        })
+          .then(function (r) {
+            if (!r.ok) return r.json().then(function (d) { throw new Error(extractDetail(d) || r.statusText); }, function () { throw new Error(r.statusText); });
+            return r.json();
+          })
+          .then(function (data) {
+            submitBtn.textContent = 'Анализ…';
+            return fetch('/api/analyze', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ document_id: data.document_id, analysis_type: analysisType })
+            });
+          })
+          .then(function (r) {
+            if (!r.ok) return r.json().then(function (d) { throw new Error(extractDetail(d) || r.statusText); }, function () { throw new Error(r.statusText); });
+            return r.json();
+          })
+          .then(function (data) {
+            window.location.href = 'result.html?result_id=' + encodeURIComponent(data.result_id) + '&user_id=' + encodeURIComponent(userId);
+          })
+          .catch(function (err) {
+            errorEl.textContent = err.message || 'Произошла ошибка.';
+            errorEl.style.display = 'block';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Анализировать';
+          });
+      });
+    })();
+  </script>
 </body>
 </html>

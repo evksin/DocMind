@@ -16,6 +16,47 @@
     <div id="result-content">
       <!-- Контент результата подгружается скриптом -->
     </div>
+    <p id="result-error" style="display:none; color: #b91c1c; margin-top: 0.5rem;"></p>
   </main>
+  <script>
+    (function () {
+      function extractDetail(d) {
+        if (!d || d.detail == null) return '';
+        if (Array.isArray(d.detail)) return d.detail.map(function (x) { return x.msg || x.message || (typeof x === 'string' ? x : ''); }).filter(Boolean).join('. ') || '';
+        return typeof d.detail === 'string' ? d.detail : '';
+      }
+      var params = new URLSearchParams(window.location.search);
+      var resultId = params.get('result_id');
+      var userId = params.get('user_id') || sessionStorage.getItem('user_id');
+
+      var linkDashboard = document.getElementById('link-dashboard');
+      linkDashboard.href = userId ? ('dashboard.html?user_id=' + encodeURIComponent(userId)) : 'dashboard.html';
+
+      var contentEl = document.getElementById('result-content');
+      var errorEl = document.getElementById('result-error');
+
+      if (!resultId) {
+        contentEl.textContent = '';
+        errorEl.textContent = 'Не указан результат (result_id).';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      fetch('/api/results/' + encodeURIComponent(resultId))
+        .then(function (r) {
+          if (!r.ok) return r.json().then(function (d) { throw new Error(extractDetail(d) || r.statusText); }, function () { throw new Error(r.statusText); });
+          return r.json();
+        })
+        .then(function (data) {
+          contentEl.textContent = data.content || '';
+          errorEl.style.display = 'none';
+        })
+        .catch(function (err) {
+          contentEl.textContent = '';
+          errorEl.textContent = err.message || 'Не удалось загрузить результат.';
+          errorEl.style.display = 'block';
+        });
+    })();
+  </script>
 </body>
 </html>

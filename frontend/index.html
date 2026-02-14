@@ -15,6 +15,48 @@
       <input type="text" id="username" name="username" placeholder="Введите имя" required autocomplete="username">
       <button type="submit">Войти</button>
     </form>
+    <p id="login-error" style="display:none; color: #b91c1c; margin-top: 0.5rem;"></p>
   </main>
+  <script>
+    (function () {
+      function extractDetail(d) {
+        if (!d || d.detail == null) return '';
+        if (Array.isArray(d.detail)) return d.detail.map(function (x) { return x.msg || x.message || (typeof x === 'string' ? x : ''); }).filter(Boolean).join('. ') || '';
+        return typeof d.detail === 'string' ? d.detail : '';
+      }
+      var form = document.getElementById('login-form');
+      var errorEl = document.getElementById('login-error');
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var username = (document.getElementById('username').value || '').trim();
+        if (!username) return;
+        errorEl.style.display = 'none';
+        fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: username })
+        })
+          .then(function (r) {
+            if (!r.ok) {
+              return r.json().then(function (d) {
+                throw new Error(extractDetail(d) || r.statusText || 'Ошибка входа');
+              }, function () {
+                throw new Error(r.statusText || 'Ошибка входа');
+              });
+            }
+            return r.json();
+          })
+          .then(function (data) {
+            sessionStorage.setItem('user_id', String(data.user_id));
+            sessionStorage.setItem('username', data.username || username);
+            window.location.href = 'dashboard.html?user_id=' + encodeURIComponent(data.user_id);
+          })
+          .catch(function (err) {
+            errorEl.textContent = err.message || 'Не удалось войти. Проверьте, что бэкенд запущен.';
+            errorEl.style.display = 'block';
+          });
+      });
+    })();
+  </script>
 </body>
 </html>

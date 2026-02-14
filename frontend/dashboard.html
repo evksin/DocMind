@@ -18,5 +18,49 @@
     </ul>
     <p><a id="link-upload" href="upload.html">Загрузить документ</a></p>
   </main>
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var userId = params.get('user_id') || sessionStorage.getItem('user_id');
+      if (!userId) {
+        window.location.href = 'index.html';
+        return;
+      }
+      var usernameEl = document.getElementById('username');
+      usernameEl.textContent = sessionStorage.getItem('username') || '—';
+      var linkUpload = document.getElementById('link-upload');
+      linkUpload.href = 'upload.html?user_id=' + encodeURIComponent(userId);
+      var listEl = document.getElementById('documents-list');
+      function extractDetail(d) {
+        if (!d || d.detail == null) return '';
+        if (Array.isArray(d.detail)) return d.detail.map(function (x) { return x.msg || x.message || (typeof x === 'string' ? x : ''); }).filter(Boolean).join('. ') || '';
+        return typeof d.detail === 'string' ? d.detail : '';
+      }
+      fetch('/api/users/' + encodeURIComponent(userId) + '/documents')
+        .then(function (r) {
+          if (!r.ok) return r.json().then(function (d) { throw new Error(extractDetail(d) || r.statusText); }, function () { throw new Error(r.statusText); });
+          return r.json();
+        })
+        .then(function (docs) {
+          if (docs.length === 0) {
+            listEl.innerHTML = '<li class="doc-empty">Пока нет загруженных документов.</li>';
+            return;
+          }
+          listEl.innerHTML = docs.map(function (d) {
+            var date = d.uploaded_at ? new Date(d.uploaded_at).toLocaleString('ru-RU') : '';
+            return '<li><span class="doc-name">' + escapeHtml(d.filename) + '</span><br><span class="doc-date">' + escapeHtml(date) + '</span></li>';
+          }).join('');
+        })
+        .catch(function (err) {
+          listEl.innerHTML = '<li class="doc-empty">' + escapeHtml(err.message || 'Не удалось загрузить список документов.') + '</li>';
+        });
+      function escapeHtml(s) {
+        if (s == null) return '';
+        var div = document.createElement('div');
+        div.textContent = s;
+        return div.innerHTML;
+      }
+    })();
+  </script>
 </body>
 </html>
