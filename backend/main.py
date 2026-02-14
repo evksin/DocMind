@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 from backend.analysis_service import run_analysis
 from backend.database import Base, SessionLocal, engine, get_db
 from backend import models  # регистрация моделей у Base
-from backend.file_upload import ensure_uploads_dir, save_upload
+from backend.file_upload import delete_document_file, ensure_uploads_dir, save_upload
 
 
 # --- Схемы запросов/ответов ---
@@ -62,6 +62,7 @@ class AnalyzeRequest(BaseModel):
         ...,
         description="summary | action_items | risks | explain_simple",
     )
+    user_id: int | None = None  # если задан — проверяем, что документ принадлежит пользователю
 
 
 class AnalyzeResponse(BaseModel):
@@ -159,6 +160,20 @@ def list_documents(user_id: int, db: Session = Depends(get_db)):
     return [DocumentListItem(id=d.id, filename=d.filename, uploaded_at=d.uploaded_at) for d in docs]
 
 
+@app.get("/api/users/{user_id}/documents/{document_id}", response_model=DocumentListItem)
+def get_document(user_id: int, document_id: int, db: Session = Depends(get_db)):
+    """Один документ пользователя (для страницы анализа)."""
+    from backend.models import Document, User
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    doc = db.query(Document).filter(Document.id == document_id, Document.user_id == user_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Документ не найден")
+    return DocumentListItem(id=doc.id, filename=doc.filename, uploaded_at=doc.uploaded_at)
+
+
 @app.post("/api/users/{user_id}/documents", response_model=DocumentUploadResponse)
 def upload_document(
     user_id: int,
@@ -197,12 +212,44 @@ def upload_document(
         )
 
 
+@app.post("/api/users/{user_id}/documents/{document_id}/delete")
+def delete_document(user_id: int, document_id: int, db: Session = Depends(get_db)):
+    """Удаление документа: файл с диска, результаты и запись в БД. POST для совместимости."""
+    from backend.models import Document, Result, User
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    doc = db.query(Document).filter(Document.id == document_id, Document.user_id == user_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Документ не найден")
+    try:
+        db.query(Result).filter(Result.document_id == document_id).delete()
+        db.delete(doc)
+        db.commit()
+        delete_document_file(doc)
+    except Exception as e:
+        db.rollback()
+        logger.exception("Ошибка при удалении документа")
+        raise HTTPException(status_code=500, detail="Не удалось удалить документ.")
+    return {"status": "ok"}
+
+
 @app.post("/api/analyze", response_model=AnalyzeResponse)
 def analyze(body: AnalyzeRequest, db: Session = Depends(get_db)):
     """
     Запуск анализа документа: извлечение текста, вызов OpenAI, сохранение в results.
-    Возвращает result_id и content.
+    Возвращает result_id и content. Если передан user_id — проверяется владение документом.
     """
+    if body.user_id is not None:
+        from backend.models import Document
+
+        doc = db.query(Document).filter(
+            Document.id == body.document_id,
+            Document.user_id == body.user_id,
+        ).first()
+        if not doc:
+            raise HTTPException(status_code=404, detail="Документ не найден")
     try:
         result = run_analysis(body.document_id, body.analysis_type, db)
         return AnalyzeResponse(result_id=result.id, content=result.content)

@@ -58,3 +58,13 @@ def save_upload(
 def get_document_file_path(document: Document) -> Path:
     """Возвращает полный путь к файлу на диске по записи Document."""
     return BASE_DIR / document.file_path
+
+
+def delete_document_file(document: Document) -> None:
+    """Удаляет файл документа с диска. Не выбрасывает ошибку, если файла нет."""
+    path = get_document_file_path(document)
+    if path.exists():
+        try:
+            path.unlink()
+        except OSError:
+            pass

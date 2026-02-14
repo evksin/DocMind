@@ -181,6 +181,31 @@ button:disabled {
   font-style: italic;
 }
 
+#documents-list .doc-actions {
+  margin-top: var(--space-s);
+  display: flex;
+  gap: var(--space-m);
+  flex-wrap: wrap;
+}
+
+#documents-list .doc-actions a,
+#documents-list .doc-actions button {
+  font-size: 0.9rem;
+}
+
+#documents-list .btn-delete {
+  background: none;
+  border: none;
+  color: var(--color-muted);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+#documents-list .btn-delete:hover {
+  color: #b91c1c;
+}
+
 /* Блок результата */
 #result-content {
   background: var(--color-surface);

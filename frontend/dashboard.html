@@ -41,24 +41,47 @@
         if (msg === 'Failed to fetch' || msg.indexOf('NetworkError') !== -1) return 'Сетевая ошибка. Проверьте подключение и что сервер запущен.';
         return msg || 'Не удалось загрузить список документов.';
       }
-      fetch('/api/users/' + encodeURIComponent(userId) + '/documents')
-        .then(function (r) {
-          if (!r.ok) return r.json().then(function (d) { throw new Error(extractDetail(d) || r.statusText); }, function () { throw new Error(r.statusText); });
-          return r.json();
-        })
-        .then(function (docs) {
-          if (docs.length === 0) {
-            listEl.innerHTML = '<li class="doc-empty">Пока нет загруженных документов.</li>';
-            return;
-          }
-          listEl.innerHTML = docs.map(function (d) {
-            var date = d.uploaded_at ? new Date(d.uploaded_at).toLocaleString('ru-RU') : '';
-            return '<li><span class="doc-name">' + escapeHtml(d.filename) + '</span><br><span class="doc-date">' + escapeHtml(date) + '</span></li>';
-          }).join('');
-        })
-        .catch(function (err) {
-          listEl.innerHTML = '<li class="doc-empty">' + escapeHtml(userFriendlyMessage(err)) + '</li>';
+      function renderDocs(docs) {
+        if (docs.length === 0) {
+          listEl.innerHTML = '<li class="doc-empty">Пока нет загруженных документов.</li>';
+          return;
+        }
+        listEl.innerHTML = docs.map(function (d) {
+          var date = d.uploaded_at ? new Date(d.uploaded_at).toLocaleString('ru-RU') : '';
+          var analyzeUrl = 'analyze.html?user_id=' + encodeURIComponent(userId) + '&document_id=' + encodeURIComponent(d.id);
+          return '<li class="doc-item" data-document-id="' + escapeHtml(String(d.id)) + '">' +
+            '<span class="doc-name">' + escapeHtml(d.filename) + '</span><br><span class="doc-date">' + escapeHtml(date) + '</span>' +
+            '<div class="doc-actions">' +
+            '<a href="' + analyzeUrl + '">Анализировать</a>' +
+            '<button type="button" class="btn-delete" data-document-id="' + escapeHtml(String(d.id)) + '">Удалить</button>' +
+            '</div></li>';
+        }).join('');
+        listEl.querySelectorAll('.btn-delete').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var docId = btn.getAttribute('data-document-id');
+            if (!docId || !confirm('Удалить этот документ? Результаты анализа тоже будут удалены.')) return;
+            fetch('/api/users/' + encodeURIComponent(userId) + '/documents/' + encodeURIComponent(docId) + '/delete', { method: 'POST' })
+              .then(function (r) {
+                if (!r.ok) return r.json().then(function (d) { throw new Error(extractDetail(d) || r.statusText); }, function () { throw new Error(r.statusText); });
+                return loadDocs();
+              })
+              .catch(function (err) {
+                alert(userFriendlyMessage(err));
+              });
+          });
         });
+      }
+      function loadDocs() {
+        return fetch('/api/users/' + encodeURIComponent(userId) + '/documents')
+          .then(function (r) {
+            if (!r.ok) return r.json().then(function (d) { throw new Error(extractDetail(d) || r.statusText); }, function () { throw new Error(r.statusText); });
+            return r.json();
+          })
+          .then(renderDocs);
+      }
+      loadDocs().catch(function (err) {
+        listEl.innerHTML = '<li class="doc-empty">' + escapeHtml(userFriendlyMessage(err)) + '</li>';
+      });
       function escapeHtml(s) {
         if (s == null) return '';
         var div = document.createElement('div');

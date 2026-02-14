@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="styles.css">
-  <title>DocMind — Загрузка документа</title>
+  <title>DocMind — Анализ документа</title>
 </head>
 <body>
   <header>
@@ -12,12 +12,9 @@
     <p><a id="link-dashboard" href="dashboard.html">← Назад к дашборду</a></p>
   </header>
   <main>
-    <h2>Загрузить и проанализировать документ</h2>
-    <form id="upload-form">
-      <p>
-        <label for="file-input">Файл (PDF или TXT)</label>
-        <input type="file" id="file-input" name="file" accept=".pdf,.txt,.docx" required>
-      </p>
+    <h2>Анализ документа</h2>
+    <p id="doc-info" class="doc-name">Загрузка…</p>
+    <form id="analyze-form">
       <p>
         <label for="analysis-type">Тип анализа</label>
         <select id="analysis-type" name="analysis_type" required>
@@ -29,7 +26,7 @@
       </p>
       <button type="submit" id="submit-btn">Анализировать</button>
     </form>
-    <p id="upload-error" style="display:none; color: #b91c1c; margin-top: 0.5rem;"></p>
+    <p id="analyze-error" style="display:none; color: #b91c1c; margin-top: 0.5rem;"></p>
   </main>
   <script>
     (function () {
@@ -45,56 +42,49 @@
       }
       var params = new URLSearchParams(window.location.search);
       var userId = params.get('user_id') || sessionStorage.getItem('user_id');
+      var documentId = params.get('document_id');
       if (!userId) {
         window.location.href = 'index.html';
         return;
       }
+      if (!documentId) {
+        document.getElementById('doc-info').textContent = 'Не указан документ.';
+        document.getElementById('analyze-form').style.display = 'none';
+        return;
+      }
       document.getElementById('link-dashboard').href = 'dashboard.html?user_id=' + encodeURIComponent(userId);
 
-      var form = document.getElementById('upload-form');
-      var fileInput = document.getElementById('file-input');
-      var analysisSelect = document.getElementById('analysis-type');
+      var docInfoEl = document.getElementById('doc-info');
+      var form = document.getElementById('analyze-form');
       var submitBtn = document.getElementById('submit-btn');
-      var errorEl = document.getElementById('upload-error');
+      var errorEl = document.getElementById('analyze-error');
+
+      fetch('/api/users/' + encodeURIComponent(userId) + '/documents/' + encodeURIComponent(documentId))
+        .then(function (r) {
+          if (!r.ok) return r.json().then(function (d) { throw new Error(extractDetail(d) || r.statusText); }, function () { throw new Error(r.statusText); });
+          return r.json();
+        })
+        .then(function (doc) {
+          docInfoEl.textContent = 'Документ: ' + doc.filename;
+        })
+        .catch(function (err) {
+          docInfoEl.textContent = 'Не удалось загрузить данные документа.';
+          errorEl.textContent = userFriendlyMessage(err);
+          errorEl.style.display = 'block';
+        });
 
       form.addEventListener('submit', function (e) {
         e.preventDefault();
         errorEl.style.display = 'none';
-        var file = fileInput.files && fileInput.files[0];
-        if (!file) {
-          errorEl.textContent = 'Выберите файл.';
-          errorEl.style.display = 'block';
-          return;
-        }
-        var analysisType = analysisSelect.value;
-        if (!analysisType) {
-          errorEl.textContent = 'Выберите тип анализа.';
-          errorEl.style.display = 'block';
-          return;
-        }
-
+        var analysisType = document.getElementById('analysis-type').value;
+        if (!analysisType) return;
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Загрузка…';
-
-        var formData = new FormData();
-        formData.append('file', file, file.name);
-
-        fetch('/api/users/' + encodeURIComponent(userId) + '/documents', {
+        submitBtn.textContent = 'Анализ…';
+        fetch('/api/analyze', {
           method: 'POST',
-          body: formData
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ document_id: parseInt(documentId, 10), analysis_type: analysisType, user_id: parseInt(userId, 10) })
         })
-          .then(function (r) {
-            if (!r.ok) return r.json().then(function (d) { throw new Error(extractDetail(d) || r.statusText); }, function () { throw new Error(r.statusText); });
-            return r.json();
-          })
-          .then(function (data) {
-            submitBtn.textContent = 'Анализ…';
-            return fetch('/api/analyze', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ document_id: data.document_id, analysis_type: analysisType, user_id: parseInt(userId, 10) })
-            });
-          })
           .then(function (r) {
             if (!r.ok) return r.json().then(function (d) { throw new Error(extractDetail(d) || r.statusText); }, function () { throw new Error(r.statusText); });
             return r.json();
