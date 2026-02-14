@@ -55,9 +55,9 @@ def get_user_content(document_text: str) -> str:
     """
     if not document_text or not document_text.strip():
         return "[Документ пуст или текст не извлечён.]"
-    # Оставляем до ~12000 символов, чтобы не превышать лимиты контекста при больших PDF
-    max_chars = 12_000
+    # Лимит входа OpenRouter (prompt tokens). ~6000 символов ≈ 2000–2500 токенов, укладываемся в 7093
+    max_chars = 6_000
     text = document_text.strip()
     if len(text) > max_chars:
-        text = text[:max_chars] + "\n\n[... документ обрезан ...]"
+        text = text[:max_chars] + "\n\n[... документ обрезан из-за лимита длины ...]"
     return text
