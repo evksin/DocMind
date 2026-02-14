@@ -23,14 +23,14 @@
       <form id="analyze-form" class="space-y-4">
         <div>
           <label for="analysis-type" class="block text-sm font-medium text-gray-700 mb-1">Тип анализа</label>
-          <select id="analysis-type" name="analysis_type" required class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <select id="analysis-type" name="analysis_type" required class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out">
             <option value="summary">Краткое изложение (Summary)</option>
             <option value="action_items">Действия (Action Items)</option>
             <option value="risks">Риски (Risks)</option>
             <option value="explain_simple">Объяснить простыми словами</option>
           </select>
         </div>
-        <button type="submit" id="submit-btn" class="w-full py-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow transition disabled:opacity-60 disabled:cursor-not-allowed">Анализировать</button>
+        <button type="submit" id="submit-btn" class="w-full py-2.5 px-5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-medium rounded-lg shadow transition duration-200 ease-in-out disabled:opacity-60 disabled:cursor-not-allowed">Анализировать</button>
       </form>
       <p id="analyze-error" class="hidden text-sm text-red-600"></p>
     </div>
@@ -65,6 +65,7 @@
       var form = document.getElementById('analyze-form');
       var submitBtn = document.getElementById('submit-btn');
       var errorEl = document.getElementById('analyze-error');
+      var currentDocFilename = '';
 
       fetch('/api/users/' + encodeURIComponent(userId) + '/documents/' + encodeURIComponent(documentId))
         .then(function (r) {
@@ -72,6 +73,7 @@
           return r.json();
         })
         .then(function (doc) {
+          currentDocFilename = doc.filename || '';
           docInfoEl.textContent = 'Документ: ' + doc.filename;
         })
         .catch(function (err) {
@@ -85,26 +87,8 @@
         errorEl.classList.add('hidden');
         var analysisType = document.getElementById('analysis-type').value;
         if (!analysisType) return;
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Анализ…';
-        fetch('/api/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ document_id: parseInt(documentId, 10), analysis_type: analysisType, user_id: parseInt(userId, 10) })
-        })
-          .then(function (r) {
-            if (!r.ok) return r.json().then(function (d) { throw new Error(extractDetail(d) || r.statusText); }, function () { throw new Error(r.statusText); });
-            return r.json();
-          })
-          .then(function (data) {
-            window.location.href = 'result.html?result_id=' + encodeURIComponent(data.result_id) + '&user_id=' + encodeURIComponent(userId);
-          })
-          .catch(function (err) {
-            errorEl.textContent = userFriendlyMessage(err);
-            errorEl.classList.remove('hidden');
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Анализировать';
-          });
+        var loadingUrl = 'analysis_loading.html?document_id=' + encodeURIComponent(documentId) + '&user_id=' + encodeURIComponent(userId) + '&analysis_type=' + encodeURIComponent(analysisType) + '&filename=' + encodeURIComponent(currentDocFilename);
+        window.location.href = loadingUrl;
       });
     })();
   </script>

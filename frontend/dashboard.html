@@ -19,7 +19,7 @@
   <main class="max-w-4xl mx-auto px-8 py-10">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-lg font-medium text-gray-900">Мои документы</h2>
-      <a id="link-upload" href="upload.html" class="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow transition">
+      <a id="link-upload" href="upload.html" class="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-medium rounded-lg shadow transition duration-200 ease-in-out">
         Загрузить документ
       </a>
     </div>
@@ -58,13 +58,19 @@
       }
       function renderDocs(docs) {
         if (docs.length === 0) {
-          listEl.innerHTML = '<li class="bg-white rounded-xl shadow-sm border border-gray-100 px-6 py-12 text-center text-gray-600 text-sm">Пока нет загруженных документов. Загрузите первый документ.</li>';
+          var uploadUrl = 'upload.html?user_id=' + encodeURIComponent(userId);
+          listEl.innerHTML = '<li class="bg-white rounded-xl shadow-sm border border-gray-100 px-6 py-14 text-center">' +
+            '<svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>' +
+            '<p class="text-gray-900 font-medium mb-1">Нет документов</p>' +
+            '<p class="text-gray-600 text-sm mb-5">Загрузите первый документ, чтобы начать анализ</p>' +
+            '<a href="' + uploadUrl + '" class="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-medium rounded-lg shadow transition duration-200 ease-in-out">Загрузить документ</a>' +
+            '</li>';
           return;
         }
         listEl.innerHTML = docs.map(function (d) {
           var date = d.uploaded_at ? new Date(d.uploaded_at).toLocaleString('ru-RU') : '';
           var analyzeUrl = 'analyze.html?user_id=' + encodeURIComponent(userId) + '&document_id=' + encodeURIComponent(d.id);
-          return '<li class="bg-white rounded-xl shadow-sm hover:shadow-md transition border border-gray-100 px-6 py-4 flex flex-wrap items-center justify-between gap-3" data-document-id="' + escapeHtml(String(d.id)) + '">' +
+          return '<li class="bg-white rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition duration-200 ease-in-out border border-gray-100 px-6 py-4 flex flex-wrap items-center justify-between gap-3" data-document-id="' + escapeHtml(String(d.id)) + '">' +
             '<div class="min-w-0">' +
             '<p class="font-semibold text-gray-900 truncate">' + escapeHtml(d.filename) + '</p>' +
             '<p class="text-sm text-gray-400 mt-0.5">' + escapeHtml(date) + '</p>' +

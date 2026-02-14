@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>DocMind — Анализ</title>
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { animation: spin 0.9s linear infinite; }
+  </style>
+</head>
+<body class="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-8 py-10">
+  <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-10 max-w-md w-full text-center">
+    <div class="spinner w-12 h-12 border-4 border-gray-200 border-t-blue-600 rounded-full mx-auto mb-6"></div>
+    <p id="filename-line" class="text-gray-900 font-medium mb-2 truncate">Analyzing your document...</p>
+    <p id="status-line" class="text-gray-600 text-sm">Reading document...</p>
+    <p id="error-line" class="hidden mt-4 text-sm text-red-600"></p>
+    <a id="back-link" href="dashboard.html" class="hidden mt-4 inline-block text-blue-600 hover:text-blue-800 font-medium">← Назад к дашборду</a>
+  </div>
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var documentId = params.get('document_id');
+      var userId = params.get('user_id');
+      var analysisType = params.get('analysis_type');
+      var filename = params.get('filename') ? decodeURIComponent(params.get('filename')) : '';
+
+      var statusEl = document.getElementById('status-line');
+      var filenameEl = document.getElementById('filename-line');
+      var errorEl = document.getElementById('error-line');
+      var backLink = document.getElementById('back-link');
+
+      var messages = [
+        'Reading document...',
+        'Extracting key points...',
+        'Understanding context...',
+        'Generating summary...',
+        'Checking for risks...'
+      ];
+      var msgIndex = 0;
+      var messageInterval = setInterval(function () {
+        if (statusEl && !statusEl.classList.contains('hidden')) {
+          statusEl.textContent = messages[msgIndex];
+          msgIndex = (msgIndex + 1) % messages.length;
+        }
+      }, 1500);
+
+      if (filename) {
+        filenameEl.textContent = 'Analyzing ' + filename;
+      } else {
+        filenameEl.textContent = 'Analyzing your document...';
+      }
+
+      function stopAndShowError(msg) {
+        clearInterval(messageInterval);
+        document.querySelector('.spinner').classList.add('hidden');
+        statusEl.classList.add('hidden');
+        filenameEl.textContent = 'Ошибка';
+        errorEl.textContent = msg;
+        errorEl.classList.remove('hidden');
+        backLink.href = userId ? ('dashboard.html?user_id=' + encodeURIComponent(userId)) : 'dashboard.html';
+        backLink.classList.remove('hidden');
+      }
+
+      if (!documentId || !userId || !analysisType) {
+        stopAndShowError('Не указаны параметры анализа.');
+        return;
+      }
+
+      fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          document_id: parseInt(documentId, 10),
+          analysis_type: analysisType,
+          user_id: parseInt(userId, 10)
+        })
+      })
+        .then(function (r) {
+          if (!r.ok) {
+            return r.json().then(function (d) {
+              var detail = (d && d.detail) ? (Array.isArray(d.detail) ? d.detail.map(function (x) { return x.msg || x.message; }).join(' ') : d.detail) : r.statusText;
+              throw new Error(detail);
+            }, function () { throw new Error(r.statusText); });
+          }
+          return r.json();
+        })
+        .then(function (data) {
+          clearInterval(messageInterval);
+          statusEl.textContent = 'Готово!';
+          setTimeout(function () {
+            window.location.href = 'result.html?result_id=' + encodeURIComponent(data.result_id) + '&user_id=' + encodeURIComponent(userId);
+          }, 400);
+        })
+        .catch(function (err) {
+          stopAndShowError(err.message || 'Не удалось выполнить анализ.');
+        });
+    })();
+  </script>
+</body>
+</html>

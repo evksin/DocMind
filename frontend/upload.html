@@ -22,7 +22,7 @@
       <form id="upload-form" class="space-y-5">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Файл (PDF, TXT или DOCX)</label>
-          <label for="file-input" class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 hover:bg-gray-50/50 transition">
+          <label for="file-input" class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 hover:bg-gray-50/50 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-300 transition duration-200 ease-in-out">
             <span class="text-gray-600 mb-1">Нажмите или перетащите файл сюда</span>
             <span id="file-name" class="text-sm text-gray-400"></span>
             <input type="file" id="file-input" name="file" accept=".pdf,.txt,.docx" required class="hidden">
@@ -30,14 +30,14 @@
         </div>
         <div>
           <label for="analysis-type" class="block text-sm font-medium text-gray-700 mb-1">Тип анализа</label>
-          <select id="analysis-type" name="analysis_type" required class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <select id="analysis-type" name="analysis_type" required class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out">
             <option value="summary">Краткое изложение (Summary)</option>
             <option value="action_items">Действия (Action Items)</option>
             <option value="risks">Риски (Risks)</option>
             <option value="explain_simple">Объяснить простыми словами</option>
           </select>
         </div>
-        <button type="submit" id="submit-btn" class="w-full py-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow transition disabled:opacity-60 disabled:cursor-not-allowed">
+        <button type="submit" id="submit-btn" class="w-full py-2.5 px-5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-medium rounded-lg shadow transition duration-200 ease-in-out disabled:opacity-60 disabled:cursor-not-allowed">
           Анализировать
         </button>
       </form>
@@ -105,19 +105,8 @@
             return r.json();
           })
           .then(function (data) {
-            submitBtn.textContent = 'Анализ…';
-            return fetch('/api/analyze', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ document_id: data.document_id, analysis_type: analysisType, user_id: parseInt(userId, 10) })
-            });
-          })
-          .then(function (r) {
-            if (!r.ok) return r.json().then(function (d) { throw new Error(extractDetail(d) || r.statusText); }, function () { throw new Error(r.statusText); });
-            return r.json();
-          })
-          .then(function (data) {
-            window.location.href = 'result.html?result_id=' + encodeURIComponent(data.result_id) + '&user_id=' + encodeURIComponent(userId);
+            var loadingUrl = 'analysis_loading.html?document_id=' + encodeURIComponent(data.document_id) + '&user_id=' + encodeURIComponent(userId) + '&analysis_type=' + encodeURIComponent(analysisType) + '&filename=' + encodeURIComponent(file.name);
+            window.location.href = loadingUrl;
           })
           .catch(function (err) {
             errorEl.textContent = userFriendlyMessage(err);
