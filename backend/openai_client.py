@@ -12,8 +12,8 @@ load_dotenv()
 # Base URL OpenRouter (OpenAI-совместимый API)
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
-# Модель по умолчанию (через OpenRouter: openai/gpt-4o или openai/gpt-4o-mini)
-DEFAULT_MODEL = "openai/gpt-4o"
+# Модель: только DeepSeek через OpenRouter
+DEFAULT_MODEL = "deepseek/deepseek-chat"
 
 # Лимит токенов ответа (укладываемся в бесплатный лимит OpenRouter; при 402 — уменьшить)
 MAX_TOKENS = 1200
