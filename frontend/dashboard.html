@@ -36,6 +36,11 @@
         if (Array.isArray(d.detail)) return d.detail.map(function (x) { return x.msg || x.message || (typeof x === 'string' ? x : ''); }).filter(Boolean).join('. ') || '';
         return typeof d.detail === 'string' ? d.detail : '';
       }
+      function userFriendlyMessage(err) {
+        var msg = (err && err.message) ? String(err.message) : '';
+        if (msg === 'Failed to fetch' || msg.indexOf('NetworkError') !== -1) return 'Сетевая ошибка. Проверьте подключение и что сервер запущен.';
+        return msg || 'Не удалось загрузить список документов.';
+      }
       fetch('/api/users/' + encodeURIComponent(userId) + '/documents')
         .then(function (r) {
           if (!r.ok) return r.json().then(function (d) { throw new Error(extractDetail(d) || r.statusText); }, function () { throw new Error(r.statusText); });
@@ -52,7 +57,7 @@
           }).join('');
         })
         .catch(function (err) {
-          listEl.innerHTML = '<li class="doc-empty">' + escapeHtml(err.message || 'Не удалось загрузить список документов.') + '</li>';
+          listEl.innerHTML = '<li class="doc-empty">' + escapeHtml(userFriendlyMessage(err)) + '</li>';
         });
       function escapeHtml(s) {
         if (s == null) return '';

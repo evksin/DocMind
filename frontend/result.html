@@ -25,6 +25,11 @@
         if (Array.isArray(d.detail)) return d.detail.map(function (x) { return x.msg || x.message || (typeof x === 'string' ? x : ''); }).filter(Boolean).join('. ') || '';
         return typeof d.detail === 'string' ? d.detail : '';
       }
+      function userFriendlyMessage(err) {
+        var msg = (err && err.message) ? String(err.message) : '';
+        if (msg === 'Failed to fetch' || msg.indexOf('NetworkError') !== -1) return 'Сетевая ошибка. Проверьте подключение и что сервер запущен.';
+        return msg || 'Не удалось загрузить результат.';
+      }
       var params = new URLSearchParams(window.location.search);
       var resultId = params.get('result_id');
       var userId = params.get('user_id') || sessionStorage.getItem('user_id');
@@ -53,7 +58,7 @@
         })
         .catch(function (err) {
           contentEl.textContent = '';
-          errorEl.textContent = err.message || 'Не удалось загрузить результат.';
+          errorEl.textContent = userFriendlyMessage(err);
           errorEl.style.display = 'block';
         });
     })();

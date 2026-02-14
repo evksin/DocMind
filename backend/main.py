@@ -3,10 +3,13 @@ DocMind — минимальный FastAPI backend.
 Фаза 1–2: health-check, БД. Фаза 5: API. Фаза 8: CORS и статика.
 """
 
+import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 from fastapi import Depends, File, FastAPI, HTTPException, UploadFile
 from starlette.middleware.cors import CORSMiddleware
@@ -176,9 +179,22 @@ def upload_document(
             status_code=400,
             detail=f"Недопустимый формат. Разрешены: {', '.join(ALLOWED_EXTENSIONS)}",
         )
-    content = file.file.read()
-    doc = save_upload(content, file.filename, user_id, db)
-    return DocumentUploadResponse(document_id=doc.id)
+    try:
+        content = file.file.read()
+        doc = save_upload(content, file.filename, user_id, db)
+        return DocumentUploadResponse(document_id=doc.id)
+    except OSError as e:
+        logger.exception("Ошибка записи файла при загрузке")
+        raise HTTPException(
+            status_code=507,
+            detail="Не удалось сохранить файл (диск или права доступа). Попробуйте позже.",
+        )
+    except Exception as e:
+        logger.exception("Ошибка при загрузке документа")
+        raise HTTPException(
+            status_code=500,
+            detail="Ошибка при сохранении документа. Попробуйте позже.",
+        )
 
 
 @app.post("/api/analyze", response_model=AnalyzeResponse)
@@ -198,10 +214,14 @@ def analyze(body: AnalyzeRequest, db: Session = Depends(get_db)):
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        msg = str(e)
-        if "OPENAI_API_KEY" in msg or "ключ" in msg.lower():
-            raise HTTPException(status_code=503, detail="Сервис анализа недоступен: не задан API-ключ.")
-        raise HTTPException(status_code=502, detail="Ошибка при анализе документа. Попробуйте позже.")
+        logger.exception("Ошибка при анализе документа")
+        msg = str(e).strip()
+        if "OPENROUTER_API_KEY" in msg or "ключ" in msg.lower():
+            raise HTTPException(status_code=503, detail="Сервис анализа недоступен: не задан OPENROUTER_API_KEY в .env")
+        # Показываем пользователю причину (обрезаем длинные сообщения)
+        if len(msg) > 300:
+            msg = msg[:297] + "..."
+        raise HTTPException(status_code=502, detail=msg or "Ошибка при анализе документа. Попробуйте позже.")
 
 
 @app.get("/api/documents/{document_id}/results", response_model=list[ResultListItem])
