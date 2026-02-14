@@ -9,12 +9,14 @@ from fastapi import FastAPI
 
 from backend.database import Base, SessionLocal, engine
 from backend import models  # регистрация моделей у Base
+from backend.file_upload import ensure_uploads_dir
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """При старте приложения создаём таблицы в БД."""
+    """При старте приложения создаём таблицы в БД и каталог для загрузок."""
     Base.metadata.create_all(bind=engine)
+    ensure_uploads_dir()
     yield
     # при завершении ничего не делаем
 
