@@ -3,30 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.tailwindcss.com"></script>
   <title>DocMind — Анализ документа</title>
 </head>
-<body>
-  <header>
-    <h1>DocMind</h1>
-    <p><a id="link-dashboard" href="dashboard.html">← Назад к дашборду</a></p>
+<body class="min-h-screen bg-gray-50">
+  <header class="bg-white border-b border-gray-100 shadow-sm">
+    <div class="max-w-3xl mx-auto px-6 py-4">
+      <h1 class="text-xl font-semibold text-gray-900 mb-1">DocMind</h1>
+      <a id="link-dashboard" href="dashboard.html" class="text-sm text-blue-500 hover:text-blue-600">← Назад к дашборду</a>
+    </div>
   </header>
-  <main>
-    <h2>Анализ документа</h2>
-    <p id="doc-info" class="doc-name">Загрузка…</p>
-    <form id="analyze-form">
-      <p>
-        <label for="analysis-type">Тип анализа</label>
-        <select id="analysis-type" name="analysis_type" required>
-          <option value="summary">Краткое изложение (Summary)</option>
-          <option value="action_items">Действия (Action Items)</option>
-          <option value="risks">Риски (Risks)</option>
-          <option value="explain_simple">Объяснить простыми словами</option>
-        </select>
-      </p>
-      <button type="submit" id="submit-btn">Анализировать</button>
-    </form>
-    <p id="analyze-error" style="display:none; color: #b91c1c; margin-top: 0.5rem;"></p>
+  <main class="max-w-2xl mx-auto px-6 py-8">
+    <h2 class="text-lg font-semibold text-gray-900 mb-6">Анализ документа</h2>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-5">
+      <p id="doc-info" class="text-sm text-gray-600">Загрузка…</p>
+      <form id="analyze-form" class="space-y-4">
+        <div>
+          <label for="analysis-type" class="block text-sm font-medium text-gray-700 mb-1">Тип анализа</label>
+          <select id="analysis-type" name="analysis_type" required class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="summary">Краткое изложение (Summary)</option>
+            <option value="action_items">Действия (Action Items)</option>
+            <option value="risks">Риски (Risks)</option>
+            <option value="explain_simple">Объяснить простыми словами</option>
+          </select>
+        </div>
+        <button type="submit" id="submit-btn" class="w-full py-2.5 px-4 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition disabled:opacity-60 disabled:cursor-not-allowed">Анализировать</button>
+      </form>
+      <p id="analyze-error" class="hidden text-sm text-red-600"></p>
+    </div>
   </main>
   <script>
     (function () {
@@ -49,7 +53,7 @@
       }
       if (!documentId) {
         document.getElementById('doc-info').textContent = 'Не указан документ.';
-        document.getElementById('analyze-form').style.display = 'none';
+        document.getElementById('analyze-form').classList.add('hidden');
         return;
       }
       document.getElementById('link-dashboard').href = 'dashboard.html?user_id=' + encodeURIComponent(userId);
@@ -70,12 +74,12 @@
         .catch(function (err) {
           docInfoEl.textContent = 'Не удалось загрузить данные документа.';
           errorEl.textContent = userFriendlyMessage(err);
-          errorEl.style.display = 'block';
+          errorEl.classList.remove('hidden');
         });
 
       form.addEventListener('submit', function (e) {
         e.preventDefault();
-        errorEl.style.display = 'none';
+        errorEl.classList.add('hidden');
         var analysisType = document.getElementById('analysis-type').value;
         if (!analysisType) return;
         submitBtn.disabled = true;
@@ -94,7 +98,7 @@
           })
           .catch(function (err) {
             errorEl.textContent = userFriendlyMessage(err);
-            errorEl.style.display = 'block';
+            errorEl.classList.remove('hidden');
             submitBtn.disabled = false;
             submitBtn.textContent = 'Анализировать';
           });

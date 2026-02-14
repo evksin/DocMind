@@ -3,20 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.tailwindcss.com"></script>
   <title>DocMind — Результат анализа</title>
 </head>
-<body>
-  <header>
-    <h1>DocMind</h1>
-    <p><a id="link-dashboard" href="dashboard.html">← Назад к дашборду</a></p>
-  </header>
-  <main>
-    <h2>Результат анализа</h2>
-    <div id="result-content">
-      <!-- Контент результата подгружается скриптом -->
+<body class="min-h-screen bg-gray-50">
+  <header class="bg-white border-b border-gray-100 shadow-sm">
+    <div class="max-w-3xl mx-auto px-6 py-4">
+      <h1 class="text-xl font-semibold text-gray-900 mb-1">DocMind</h1>
+      <a id="link-dashboard" href="dashboard.html" class="text-sm text-blue-500 hover:text-blue-600">← Назад к дашборду</a>
     </div>
-    <p id="result-error" style="display:none; color: #b91c1c; margin-top: 0.5rem;"></p>
+  </header>
+  <main class="max-w-3xl mx-auto px-6 py-8">
+    <h2 class="text-lg font-semibold text-gray-900 mb-6">Результат анализа</h2>
+    <div id="result-content" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-gray-600 text-[15px] leading-relaxed whitespace-pre-wrap min-h-[120px]">
+      <!-- Контент подгружается скриптом -->
+    </div>
+    <p id="result-error" class="hidden mt-3 text-sm text-red-600"></p>
+    <p class="mt-6">
+      <a id="link-dashboard-2" href="dashboard.html" class="inline-flex items-center px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium transition">Назад к дашборду</a>
+    </p>
   </main>
   <script>
     (function () {
@@ -35,7 +40,10 @@
       var userId = params.get('user_id') || sessionStorage.getItem('user_id');
 
       var linkDashboard = document.getElementById('link-dashboard');
-      linkDashboard.href = userId ? ('dashboard.html?user_id=' + encodeURIComponent(userId)) : 'dashboard.html';
+      var linkDashboard2 = document.getElementById('link-dashboard-2');
+      var dashboardHref = userId ? ('dashboard.html?user_id=' + encodeURIComponent(userId)) : 'dashboard.html';
+      linkDashboard.href = dashboardHref;
+      linkDashboard2.href = dashboardHref;
 
       var contentEl = document.getElementById('result-content');
       var errorEl = document.getElementById('result-error');
@@ -43,7 +51,7 @@
       if (!resultId) {
         contentEl.textContent = '';
         errorEl.textContent = 'Не указан результат (result_id).';
-        errorEl.style.display = 'block';
+        errorEl.classList.remove('hidden');
         return;
       }
 
@@ -54,12 +62,13 @@
         })
         .then(function (data) {
           contentEl.textContent = data.content || '';
-          errorEl.style.display = 'none';
+          errorEl.classList.add('hidden');
         })
         .catch(function (err) {
           contentEl.textContent = '';
+          contentEl.classList.add('hidden');
           errorEl.textContent = userFriendlyMessage(err);
-          errorEl.style.display = 'block';
+          errorEl.classList.remove('hidden');
         });
     })();
   </script>

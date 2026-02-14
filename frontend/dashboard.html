@@ -3,20 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.tailwindcss.com"></script>
   <title>DocMind — Дашборд</title>
 </head>
-<body>
-  <header>
-    <h1>DocMind</h1>
-    <p id="user-info">Пользователь: <span id="username">—</span></p>
+<body class="min-h-screen bg-gray-50">
+  <header class="bg-white border-b border-gray-100 shadow-sm">
+    <div class="max-w-3xl mx-auto px-6 py-4 flex justify-between items-center">
+      <h1 class="text-xl font-semibold text-gray-900">DocMind</h1>
+      <p class="text-sm text-gray-600">Пользователь: <span id="username">—</span></p>
+    </div>
   </header>
-  <main>
-    <h2>Мои документы</h2>
-    <ul id="documents-list">
-      <!-- Список документов подгружается скриптом -->
-    </ul>
-    <p><a id="link-upload" href="upload.html">Загрузить документ</a></p>
+  <main class="max-w-3xl mx-auto px-6 py-8">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-lg font-semibold text-gray-900">Мои документы</h2>
+      <a id="link-upload" href="upload.html" class="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition">
+        Загрузить документ
+      </a>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <ul id="documents-list" class="divide-y divide-gray-100">
+        <!-- Список подгружается скриптом -->
+      </ul>
+    </div>
   </main>
   <script>
     (function () {
@@ -41,19 +49,29 @@
         if (msg === 'Failed to fetch' || msg.indexOf('NetworkError') !== -1) return 'Сетевая ошибка. Проверьте подключение и что сервер запущен.';
         return msg || 'Не удалось загрузить список документов.';
       }
+      function escapeHtml(s) {
+        if (s == null) return '';
+        var div = document.createElement('div');
+        div.textContent = s;
+        return div.innerHTML;
+      }
       function renderDocs(docs) {
         if (docs.length === 0) {
-          listEl.innerHTML = '<li class="doc-empty">Пока нет загруженных документов.</li>';
+          listEl.innerHTML = '<li class="px-6 py-12 text-center text-gray-500 text-sm">Пока нет загруженных документов. Загрузите первый документ.</li>';
           return;
         }
         listEl.innerHTML = docs.map(function (d) {
           var date = d.uploaded_at ? new Date(d.uploaded_at).toLocaleString('ru-RU') : '';
           var analyzeUrl = 'analyze.html?user_id=' + encodeURIComponent(userId) + '&document_id=' + encodeURIComponent(d.id);
-          return '<li class="doc-item" data-document-id="' + escapeHtml(String(d.id)) + '">' +
-            '<span class="doc-name">' + escapeHtml(d.filename) + '</span><br><span class="doc-date">' + escapeHtml(date) + '</span>' +
-            '<div class="doc-actions">' +
-            '<a href="' + analyzeUrl + '">Анализировать</a>' +
-            '<button type="button" class="btn-delete" data-document-id="' + escapeHtml(String(d.id)) + '">Удалить</button>' +
+          return '<li class="px-6 py-4 flex flex-wrap items-center justify-between gap-3 hover:bg-gray-50/50" data-document-id="' + escapeHtml(String(d.id)) + '">' +
+            '<div class="min-w-0">' +
+            '<p class="font-medium text-gray-900 truncate">' + escapeHtml(d.filename) + '</p>' +
+            '<p class="text-xs text-gray-500 mt-0.5">' + escapeHtml(date) + '</p>' +
+            '</div>' +
+            '<div class="flex items-center gap-2 shrink-0">' +
+            '<a href="' + analyzeUrl + '" class="text-sm font-medium text-blue-500 hover:text-blue-600">Анализировать</a>' +
+            '<span class="text-gray-200">|</span>' +
+            '<button type="button" class="btn-delete text-sm text-gray-500 hover:text-red-600" data-document-id="' + escapeHtml(String(d.id)) + '">Удалить</button>' +
             '</div></li>';
         }).join('');
         listEl.querySelectorAll('.btn-delete').forEach(function (btn) {
@@ -80,14 +98,8 @@
           .then(renderDocs);
       }
       loadDocs().catch(function (err) {
-        listEl.innerHTML = '<li class="doc-empty">' + escapeHtml(userFriendlyMessage(err)) + '</li>';
+        listEl.innerHTML = '<li class="px-6 py-12 text-center text-sm text-red-600">' + escapeHtml(userFriendlyMessage(err)) + '</li>';
       });
-      function escapeHtml(s) {
-        if (s == null) return '';
-        var div = document.createElement('div');
-        div.textContent = s;
-        return div.innerHTML;
-      }
     })();
   </script>
 </body>
