@@ -18,6 +18,7 @@ from starlette.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from backend.ai_magic_service import run_ai_magic
 from backend.analysis_service import run_analysis
 from backend.database import Base, SessionLocal, engine, get_db
 from backend import models  # регистрация моделей у Base
@@ -90,6 +91,18 @@ class ResultDetailResponse(BaseModel):
     analysis_type: str
     content: str
     created_at: datetime
+
+
+class AIMagicRequest(BaseModel):
+    """Тело POST /api/ai-magic."""
+
+    document_id: int
+
+
+class AIMagicResponse(BaseModel):
+    """Ответ AI Magic — консалтинговый отчёт."""
+
+    report: str
 
 
 @asynccontextmanager
@@ -307,6 +320,35 @@ def get_result(result_id: int, db: Session = Depends(get_db)):
         content=result.content,
         created_at=result.created_at,
     )
+
+
+@app.post("/api/ai-magic", response_model=AIMagicResponse)
+def ai_magic(body: AIMagicRequest, db: Session = Depends(get_db)):
+    """
+    Генерирует AI Magic отчёт: документ + готовые анализы → один запрос к LLM.
+    Промпт загружается из docs/AI_MAGIC_PROMPT.md.
+    """
+    try:
+        report = run_ai_magic(body.document_id, db)
+        return AIMagicResponse(report=report)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        msg = str(e)
+        if "не найден" in msg:
+            raise HTTPException(status_code=404, detail=msg)
+        raise HTTPException(status_code=400, detail=msg)
+    except Exception as e:
+        logger.exception("Ошибка AI Magic")
+        msg = str(e).strip()
+        if "OPENROUTER_API_KEY" in msg or "ключ" in msg.lower():
+            raise HTTPException(
+                status_code=503,
+                detail="Сервис недоступен: не задан OPENROUTER_API_KEY в .env",
+            )
+        if len(msg) > 300:
+            msg = msg[:297] + "..."
+        raise HTTPException(status_code=502, detail=msg or "Ошибка при генерации отчёта.")
 
 
 @app.get("/debug/db")

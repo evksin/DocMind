@@ -16,7 +16,7 @@ OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 DEFAULT_MODEL = "openai/gpt-4o"
 
 # Лимит токенов ответа (укладываемся в бесплатный лимит OpenRouter; при 402 — уменьшить)
-MAX_TOKENS = 1400
+MAX_TOKENS = 1200
 
 
 def get_api_key() -> str | None:

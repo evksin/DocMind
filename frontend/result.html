@@ -22,9 +22,23 @@
       <!-- Контент подгружается скриптом -->
     </div>
     <p id="result-error" class="hidden mt-3 text-sm text-red-600"></p>
-    <p class="mt-6">
+    <div class="mt-6 flex flex-wrap items-center gap-4">
+      <button id="ai-magic-btn" type="button" class="hidden inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-medium rounded-lg shadow transition duration-200 ease-in-out">
+        ✨ AI Magic
+      </button>
       <a id="link-dashboard-2" href="dashboard.html" class="inline-block text-blue-600 hover:text-blue-800 font-medium transition duration-200 ease-in-out">Назад к дашборду</a>
-    </p>
+    </div>
+
+    <div id="ai-magic-section" class="hidden mt-10">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">AI Magic Report</h3>
+      <div id="ai-magic-loading" class="hidden bg-white rounded-xl shadow-lg border border-gray-100 p-8 text-center text-gray-500">
+        AI is generating insights…
+      </div>
+      <div id="ai-magic-report" class="space-y-4">
+        <!-- Секции отчёта подгружаются скриптом -->
+      </div>
+      <p id="ai-magic-error" class="hidden mt-3 text-sm text-red-600"></p>
+    </div>
   </main>
   <script>
     (function () {
@@ -50,6 +64,7 @@
 
       var contentEl = document.getElementById('result-content');
       var errorEl = document.getElementById('result-error');
+      var documentId = null;
 
       if (!resultId) {
         contentEl.textContent = '';
@@ -64,8 +79,12 @@
           return r.json();
         })
         .then(function (data) {
+          documentId = data.document_id;
           contentEl.textContent = data.content || '';
           errorEl.classList.add('hidden');
+          if (documentId != null) {
+            document.getElementById('ai-magic-btn').classList.remove('hidden');
+          }
         })
         .catch(function (err) {
           contentEl.textContent = '';
@@ -73,6 +92,68 @@
           errorEl.textContent = userFriendlyMessage(err);
           errorEl.classList.remove('hidden');
         });
+
+      document.getElementById('ai-magic-btn').addEventListener('click', function () {
+        if (documentId == null) return;
+        var section = document.getElementById('ai-magic-section');
+        var loading = document.getElementById('ai-magic-loading');
+        var reportEl = document.getElementById('ai-magic-report');
+        var magicError = document.getElementById('ai-magic-error');
+        var btn = document.getElementById('ai-magic-btn');
+
+        section.classList.remove('hidden');
+        reportEl.innerHTML = '';
+        magicError.classList.add('hidden');
+        loading.classList.remove('hidden');
+        btn.disabled = true;
+
+        fetch('/api/ai-magic', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ document_id: documentId })
+        })
+          .then(function (r) {
+            if (!r.ok) return r.json().then(function (d) { throw new Error(extractDetail(d) || r.statusText); }, function () { throw new Error(r.statusText); });
+            return r.json();
+          })
+          .then(function (data) {
+            loading.classList.add('hidden');
+            btn.disabled = false;
+            var report = (data.report || '').trim();
+            if (!report) {
+              reportEl.innerHTML = '<p class="text-gray-500">Пустой ответ.</p>';
+              return;
+            }
+            var parts = report.split(/\n\n(?=\d+\.\s+)/);
+            parts.forEach(function (part) {
+              part = part.trim();
+              if (!part) return;
+              var firstLineEnd = part.indexOf('\n');
+              var title = firstLineEnd > 0 ? part.substring(0, firstLineEnd).trim() : part;
+              var body = firstLineEnd > 0 ? part.substring(firstLineEnd + 1).trim() : '';
+              var card = document.createElement('div');
+              card.className = 'bg-white rounded-xl shadow-sm border border-gray-100 p-5';
+              card.innerHTML = '<h4 class="text-gray-900 font-medium mb-2">' + escapeHtml(title) + '</h4><div class="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">' + escapeHtml(body) + '</div>';
+              reportEl.appendChild(card);
+            });
+            if (reportEl.children.length === 0) {
+              reportEl.innerHTML = '<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 text-gray-600 leading-relaxed whitespace-pre-wrap">' + escapeHtml(report) + '</div>';
+            }
+          })
+          .catch(function (err) {
+            loading.classList.add('hidden');
+            btn.disabled = false;
+            magicError.textContent = userFriendlyMessage(err);
+            magicError.classList.remove('hidden');
+          });
+      });
+
+      function escapeHtml(s) {
+        if (s == null) return '';
+        var div = document.createElement('div');
+        div.textContent = s;
+        return div.innerHTML;
+      }
     })();
   </script>
 </body>
