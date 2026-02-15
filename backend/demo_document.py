@@ -1,36 +1,22 @@
 """
-Демо-документ для быстрого показа возможностей (кнопка «Use demo document»).
-Генерирует одностраничный PDF с текстом.
+Демо-документ для кнопки «Попробовать на примере».
+Загружает готовый PDF из backend/demo/demo_report.pdf и обрабатывает его как загруженный пользователем файл.
 """
 
-from io import BytesIO
+from pathlib import Path
+
+from backend.database import BASE_DIR
+
+# Путь к демо-PDF относительно backend/
+DEMO_PDF_PATH = BASE_DIR / "demo" / "demo_report.pdf"
+DEMO_FILENAME = "demo_report.pdf"
 
 
 def get_demo_pdf_bytes() -> bytes:
-    """Возвращает байты PDF демо-документа и имя файла."""
-    from fpdf import FPDF
-
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Helvetica", size=12)
-    pdf.set_auto_page_break(auto=True, margin=15)
-    text = (
-        "DocMind Demo Document\n\n"
-        "This is a sample document for demonstration. "
-        "It contains key points about project planning and risk management.\n\n"
-        "Key topics:\n"
-        "- Define clear objectives and milestones.\n"
-        "- Identify risks early and plan mitigation.\n"
-        "- Communicate with stakeholders regularly.\n"
-        "- Review progress and adjust the plan as needed.\n\n"
-        "Conclusion: Good planning and risk awareness help deliver projects successfully."
-    )
-    for line in text.split("\n"):
-        pdf.multi_cell(0, 6, line)
-    buf = BytesIO()
-    pdf.output(buf)
-    buf.seek(0)
-    return buf.getvalue()
-
-
-DEMO_FILENAME = "demo_document.pdf"
+    """
+    Читает байты демо-документа из backend/demo/demo_report.pdf.
+    Обрабатывается далее как обычная загрузка: save_upload → run_analysis → AI Magic на странице результата.
+    """
+    if not DEMO_PDF_PATH.exists():
+        raise FileNotFoundError(f"Демо-файл не найден: {DEMO_PDF_PATH}")
+    return DEMO_PDF_PATH.read_bytes()

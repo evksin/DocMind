@@ -348,8 +348,9 @@ def get_result(result_id: int, db: Session = Depends(get_db)):
 @app.post("/api/demo/run", response_model=DemoRunResponse)
 def demo_run(body: DemoRunRequest, db: Session = Depends(get_db)):
     """
-    Загружает демо-документ для пользователя, запускает анализ (summary), возвращает result_id.
-    Для кнопки «Use demo document» — судьи видят результат без загрузки файла.
+    Загружает демо-документ из backend/demo/demo_report.pdf для пользователя,
+    сохраняет как обычную загрузку, запускает анализ (summary), возвращает result_id.
+    На странице результата доступны анализ и AI Magic как для загруженного файла.
     """
     from backend.models import User
 
@@ -361,6 +362,12 @@ def demo_run(body: DemoRunRequest, db: Session = Depends(get_db)):
         doc = save_upload(content, DEMO_FILENAME, body.user_id, db)
         result = run_analysis(doc.id, "summary", db, audience=None)
         return DemoRunResponse(document_id=doc.id, result_id=result.id)
+    except FileNotFoundError as e:
+        logger.warning("Демо-файл не найден: %s", e)
+        raise HTTPException(
+            status_code=404,
+            detail="Демо-файл не найден. Добавьте backend/demo/demo_report.pdf",
+        )
     except Exception as e:
         logger.exception("Ошибка демо-режима")
         raise HTTPException(status_code=500, detail="Не удалось запустить демо.")
