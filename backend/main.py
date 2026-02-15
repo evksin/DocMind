@@ -119,6 +119,7 @@ class DemoRunRequest(BaseModel):
     """Тело POST /api/demo/run."""
 
     user_id: int
+    audience: str | None = Field(None, description="business | legal | manager | student — для кого анализ")
 
 
 class DemoRunResponse(BaseModel):
@@ -377,7 +378,7 @@ def demo_run(body: DemoRunRequest, db: Session = Depends(get_db)):
     try:
         content = get_demo_pdf_bytes()
         doc = save_upload(content, DEMO_FILENAME, body.user_id, db)
-        result = run_analysis(doc.id, "summary", db, audience=None)
+        result = run_analysis(doc.id, "summary", db, audience=body.audience)
         return DemoRunResponse(document_id=doc.id, result_id=result.id)
     except FileNotFoundError as e:
         logger.warning("Демо-файл не найден: %s", e)
