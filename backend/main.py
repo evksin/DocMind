@@ -345,6 +345,23 @@ def get_result(result_id: int, db: Session = Depends(get_db)):
     )
 
 
+@app.get("/api/demo/document")
+def demo_document():
+    """
+    Отдаёт демо-документ (PDF) для просмотра в браузере.
+    Нужен для прозрачности: пользователь может открыть документ и увидеть, что именно анализирует ИИ.
+    """
+    try:
+        content = get_demo_pdf_bytes()
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Демо-документ не найден.")
+    return Response(
+        content=content,
+        media_type="application/pdf",
+        headers={"Content-Disposition": 'inline; filename="demo_report.pdf"'},
+    )
+
+
 @app.post("/api/demo/run", response_model=DemoRunResponse)
 def demo_run(body: DemoRunRequest, db: Session = Depends(get_db)):
     """
