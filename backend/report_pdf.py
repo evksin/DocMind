@@ -11,7 +11,10 @@ from pathlib import Path
 def _find_unicode_font() -> str | None:
     """Возвращает путь к TTF-шрифту с поддержкой кириллицы или None."""
     root = Path(__file__).resolve().parent.parent
+    backend_dir = Path(__file__).resolve().parent
     candidates = [
+        backend_dir / "fonts" / "dejavu-sans-ttf-2.37" / "ttf" / "DejaVuSans.ttf",
+        backend_dir / "fonts" / "DejaVuSans.ttf",
         root / "fonts" / "DejaVuSans.ttf",
         root / "font" / "DejaVuSans.ttf",
     ]
@@ -33,8 +36,13 @@ def _sanitize_ascii(text: str) -> str:
 
 
 def _safe_line(s: str) -> str:
-    """Убирает управляющие и непечатаемые символы из строки."""
+    """Убирает управляющие и непечатаемые символы (только ASCII)."""
     return "".join(c for c in s if 32 <= ord(c) <= 126 or c in "\n\t")
+
+
+def _strip_control_chars(s: str) -> str:
+    """Убирает только управляющие символы (0–31, 127), сохраняет кириллицу."""
+    return "".join(c for c in s if ord(c) >= 32 and ord(c) != 127 or c in "\n\t")
 
 
 def report_text_to_pdf(report_text: str) -> bytes:
@@ -63,16 +71,18 @@ def report_text_to_pdf(report_text: str) -> bytes:
         pdf.multi_cell(0, 6, "No content.")
     else:
         for raw_line in text.replace("\r", "").split("\n"):
-            line = _safe_line(raw_line).strip()
+            line = raw_line.strip()
             if not line:
                 pdf.ln(4)
                 continue
-            if not use_unicode:
-                line = _sanitize_ascii(line)
+            if use_unicode:
+                line = _strip_control_chars(line)
+            else:
+                line = _sanitize_ascii(_safe_line(line))
             try:
                 pdf.multi_cell(0, 6, line)
             except Exception:
-                pdf.multi_cell(0, 6, _sanitize_ascii(line)[:200])
+                pdf.multi_cell(0, 6, _sanitize_ascii(_safe_line(raw_line))[:200])
     buf = BytesIO()
     pdf.output(buf)
     buf.seek(0)
