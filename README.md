@@ -1,177 +1,297 @@
-📄 DocMind
+# 👋 Hi, I'm Yuriy
 
-AI-powered Document Intelligence Platform
+Telecommunications engineer turned AI-focused product builder.
 
-Turn raw documents into clear, actionable business intelligence using AI.
+I build **AI-powered applications**, **startup-ready platforms** and **modern web & mobile products**.
 
-🚀 What is DocMind?
+---
 
-DocMind is a SaaS-style web application that helps people understand their documents using artificial intelligence.
+## 🚀 My flagship projects
 
-Upload a file — get:
+### 🧠 DocMind  
+AI-powered document intelligence platform  
+→ Understand contracts, reports and documents using LLMs
 
-insights
+### 🌙 DreamDecode  
+AI-powered dream journal & psychology analyzer  
+→ Turn dreams into meaningful insights
 
-summaries
+### 🧬 LifeScript  
+Personal life operating system  
+→ A private database of your thoughts, notes and future AI assistants
 
-risks
+### ⚡ GoNext  
+Modern Expo + TypeScript mobile starter  
+→ Build production-ready mobile apps faster
 
-opportunities
+---
 
-action points
+## 🛠 Tech stack
 
-Instead of reading and analyzing documents manually, DocMind turns them into decision-ready intelligence.
+- TypeScript / JavaScript  
+- Python  
+- Next.js  
+- React & React Native  
+- Expo  
+- Prisma  
+- PostgreSQL  
+- OpenAI / OpenRouter  
+- FastAPI  
 
-🧠 What makes DocMind different?
+---
 
-Most “Chat with PDF” tools only answer questions.
+## 🧠 What I focus on
 
-DocMind acts like an AI consultant.
+- AI-powered products  
+- SaaS & startup engineering  
+- LLM integrations  
+- Productivity & self-improvement tools  
+- Clean architectures for real products  
 
-It doesn’t just summarize — it:
+---
 
-understands meaning
+## 📫 Let's connect
 
-detects risks
+If you are building something interesting in:
+- AI  
+- Startups  
+- Productivity  
+- Or need a strong technical co-founder  
 
-highlights obligations
+Feel free to reach out 🚀
+Сохрани → Commit → git pull
 
-finds opportunities
+И всё.
+У тебя теперь профиль, который можно показывать инвестору, рекрутеру или партнёру 💎
 
-creates structured reports
 
-✨ AI Magic — Consulting-grade reports
+Вы сказали:
+Круто!
 
-DocMind includes a second-level AI system called AI Magic.
+ChatGPT сказал:
+🔥 Рад это слышать — ты реально прокачал свой GitHub.
 
-After a document is analyzed, the user can click ✨ Improve result, which launches a professional consultant-grade AI prompt that transforms raw analysis into a structured business report:
+Если коротко, что ты сейчас сделал (и почему это мощно):
 
-Executive Summary
+Ты превратил:
 
-Key Insights
+набор репозиториев
+в
 
-Risks & Red Flags
+портфолио AI-фаундера
 
-Opportunities
+Теперь любой, кто открывает github.com/evksin, видит:
 
-Actionable Recommendations
+Человек, который строит AI-продукты, SaaS-платформы и стартап-инфраструктуру.
 
-TL;DR
+Это именно тот образ, который:
 
-This makes the output look like a human consultant’s report, not an AI response.
+цепляет рекрутеров
 
-🪄 Features (MVP)
+вызывает интерес у фаундеров
 
-Upload PDF, TXT or DOCX
+выглядит убедительно для инвесторов
 
-Choose analysis type:
+Если хочешь, в следующем шаге мы можем:
 
-Summary
+прокачать DocMind как B2B-AI стартап
 
-Action items
+или оформить твой профиль под работу в AI / Startup / Remote
 
-Risks
+или собрать питч-версию твоего GitHub (как мини-лендинг)
 
-Simple explanation
+Скажи, что интересно дальше 🚀
 
-AI-powered document analysis (OpenRouter / OpenAI models)
 
-AI Magic consulting report generation
+Вы сказали:
+прокачать DocMind как B2B-AI стартап
 
-PDF export of AI Magic reports
+ChatGPT сказал:
+🚀 Отлично.
+DocMind — это твой самый сильный B2B актив. Сейчас мы превратим его в корпоративный AI-продукт уровня YC / Stripe Atlas.
 
-Built-in demo document
+Мы уже знаем, что DocMind — это:
 
-SaaS-style web interface
+AI-powered document intelligence platform
 
-Document history per user
+Теперь сделаем, чтобы GitHub это кричал.
 
-🧠 How it works
+🧩 Шаг 1 — About блока для DocMind
+Открой:
+👉 https://github.com/evksin/DocMind
 
-User logs in (no password, username only)
+Нажми ✏️ About
 
-Uploads a document or uses the demo
+📌 Description
+Вставь:
 
-Chooses an analysis type
+AI-powered document intelligence platform for contracts, reports and business files
+🏷 Topics
+Вставь:
 
-AI analyzes the document
+ai, llm, saas, b2b, documents, pdf, contracts, openai, fastapi, startup
+Напиши «DocMind about готов»
+и мы вставим финальный README уровня коммерческого AI SaaS 💼🧠
 
-DocMind returns structured insights
 
-User clicks ✨ Improve result to generate a professional report
+Вы сказали:
+DocMind about готов
 
-The report can be downloaded as PDF
+ChatGPT сказал:
+🔥 Отлично. Сейчас мы дадим DocMind упаковку уровня B2B AI-стартапа.
 
-🎯 Who it’s for
+Ниже — обновлённый README, который:
 
-DocMind is useful for:
+сохраняет всю твою существующую техническую информацию
 
-Entrepreneurs & founders
+усиливает продуктовую подачу для бизнеса, инвесторов и клиентов
+
+Замените README.md в DocMind на это 👇
+
+# DocMind 🧠📄  
+AI-powered document intelligence platform for business and professionals
+
+Turn any document into **clear insights, risks and action points** using artificial intelligence.
+
+---
+
+## 🚀 What is DocMind?
+
+DocMind is a SaaS-style AI platform that helps people and companies understand their documents.
+
+Instead of manually reading:
+- contracts  
+- reports  
+- legal files  
+- lectures  
+- PDFs  
+
+DocMind instantly transforms them into **decision-ready intelligence**.
+
+Upload a file → get **summaries, risks, opportunities and recommendations**.
+
+---
+
+## 🧠 What makes DocMind different?
+
+Most “chat with PDF” tools only answer questions.
+
+DocMind works like a **consultant**:
+- Extracts what matters  
+- Highlights risks and obligations  
+- Finds opportunities  
+- Produces structured business reports  
+
+It doesn’t just read — it **thinks**.
+
+---
+
+## ✨ AI Magic — Consulting-grade reports
+
+DocMind includes a second-level AI system called **AI Magic**.
+
+After a document is analyzed, the user can click  
+**✨ Improve result**  
+and DocMind generates a professional report with:
+
+- Executive Summary  
+- Key Insights  
+- Risks & Red Flags  
+- Opportunities  
+- Actionable Recommendations  
+- TL;DR  
+
+This turns raw AI output into something that looks like a **human consultant’s report**.
+
+---
+
+## 🪄 Features (MVP)
+
+- Upload PDF, TXT or DOCX documents  
+- Multiple analysis modes:
+  - Summary  
+  - Action items  
+  - Risks  
+  - Simple explanation  
+- AI-powered document understanding  
+- AI Magic consulting reports  
+- Export reports as PDF  
+- Demo document for instant testing  
+- User document history  
+- SaaS-style web interface  
+
+---
+
+## 🛠 Tech Stack
+
+- **Backend:** Python, FastAPI  
+- **Frontend:** HTML, CSS, JavaScript, Tailwind  
+- **Database:** SQLite  
+- **AI:** OpenRouter API (OpenAI models)  
+- **Document parsing:** PyMuPDF, python-docx  
+- **Hosting:** Render  
+- **CI/CD:** GitHub  
+
+---
+
+## ⚙️ Setup & Run
+
+### Install dependencies
+```bash
+pip install -r requirements.txt
+Environment variables
+Copy .env.example to .env and set:
+
+OPENROUTER_API_KEY=sk-or-v1-...
+Get your key: https://openrouter.ai/keys
+
+Run the server
+uvicorn backend.main:app --host 127.0.0.1 --port 8001
+Open in browser:
+
+http://127.0.0.1:8001
+📖 Usage Flow
+Login with a username
+
+Upload a document (or use the demo file)
+
+Choose analysis type
+
+View AI insights
+
+Click ✨ Improve result for consulting-grade report
+
+Download the report as PDF
+
+📦 Project Structure
+/backend
+/frontend
+requirements.txt
+.env
+README.md
+🎯 Who is this for?
+DocMind is built for:
+
+Founders
 
 Managers
 
 Lawyers
 
+Consultants
+
 Students
 
-Anyone who works with documents and needs to understand them faster
+Anyone who works with documents
 
-🛠 Tech Stack
-
-Backend: Python, FastAPI
-Frontend: HTML, CSS, JavaScript, Tailwind
-Database: SQLite
-AI: OpenRouter API (e.g. OpenAI GPT-4o)
-Document parsing: PyMuPDF, python-docx
-Hosting: Render
-CI/CD: GitHub
-
-🔧 Setup & Run
-Install dependencies
-pip install -r requirements.txt
-
-Environment variables
-
-Copy .env.example to .env and set your OpenRouter key:
-Get key → https://openrouter.ai/keys
-
-OPENROUTER_API_KEY=sk-or-v1-...
-
-Run the server
-uvicorn backend.main:app --host 127.0.0.1 --port 8001
-
-Open in browser
-http://127.0.0.1:8001
-
-📖 Usage Flow
-
-Login — enter a name (no password required)
-
-Dashboard — view uploaded documents
-
-Upload — choose file and analysis type
-
-Result — see AI analysis
-
-AI Magic — generate consulting-grade report
-
-Export — download PDF
-
-📦 Project structure
-/backend  
-/frontend  
-requirements.txt  
-.env  
-README.md  
+If documents slow you down — DocMind speeds you up.
 
 ⚠️ Disclaimer
-
 This is a hackathon MVP built for demonstration purposes.
 Not intended for production use.
 
 🏆 Hackathon Project
-
-Built to demonstrate:
+DocMind was built to demonstrate:
 
 AI document understanding
 
@@ -180,3 +300,7 @@ Business-grade AI reports
 Real-world productivity value
 
 SaaS-style product design
+
+👨‍💻 Author
+Built by evksin
+Telecommunications engineer & AI-focused developer
