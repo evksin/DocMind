@@ -66,9 +66,22 @@ def report_text_to_pdf(report_text: str) -> bytes:
     else:
         pdf.set_font("Helvetica", size=11)
 
+    # Явная ширина ячейки, чтобы избежать "Not enough horizontal space" (epw = usable width)
+    cell_w = getattr(pdf, "epw", None) or (pdf.w - pdf.l_margin - pdf.r_margin)
+    if cell_w <= 0:
+        cell_w = 170  # A4: 210 - 20*2 mm
+
+    def write_line(s: str) -> None:
+        t = (s or "").strip()
+        if not t:
+            pdf.ln(4)
+            return
+        pdf.set_x(pdf.l_margin)
+        pdf.multi_cell(cell_w, 6, t)
+
     text = (report_text or "").strip()
     if not text:
-        pdf.multi_cell(0, 6, "No content.")
+        write_line("No content.")
     else:
         for raw_line in text.replace("\r", "").split("\n"):
             line = raw_line.strip()
@@ -79,10 +92,14 @@ def report_text_to_pdf(report_text: str) -> bytes:
                 line = _strip_control_chars(line)
             else:
                 line = _sanitize_ascii(_safe_line(line))
+            if not line:
+                pdf.ln(4)
+                continue
             try:
-                pdf.multi_cell(0, 6, line)
+                write_line(line)
             except Exception:
-                pdf.multi_cell(0, 6, _sanitize_ascii(_safe_line(raw_line))[:200])
+                fallback = _sanitize_ascii(_safe_line(raw_line))[:200].strip() or " "
+                write_line(fallback)
     buf = BytesIO()
     pdf.output(buf)
     buf.seek(0)
