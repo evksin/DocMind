@@ -23,16 +23,19 @@
     </div>
     <p id="result-error" class="hidden mt-3 text-sm text-red-600"></p>
     <div class="mt-6 flex flex-wrap items-center gap-4">
-      <button id="ai-magic-btn" type="button" class="hidden inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-medium rounded-lg shadow transition duration-200 ease-in-out">
-        ✨ AI Magic
-      </button>
+      <div class="hidden flex flex-col items-start gap-0.5" id="ai-magic-btn-wrap">
+        <button id="ai-magic-btn" type="button" title="Превращает анализ в понятный отчёт" class="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-medium rounded-lg shadow transition duration-200 ease-in-out">
+          ✨ Улучшить результат
+        </button>
+        <span class="text-xs text-gray-500">Превращает анализ в понятный отчёт</span>
+      </div>
       <a id="link-dashboard-2" href="dashboard.html" class="inline-block text-blue-600 hover:text-blue-800 font-medium transition duration-200 ease-in-out">Назад к дашборду</a>
     </div>
 
     <div id="ai-magic-section" class="hidden mt-10">
-      <h3 class="text-lg font-medium text-gray-900 mb-4">AI Magic Report</h3>
+      <h3 class="text-lg font-medium text-gray-900 mb-4">Понятный отчёт</h3>
       <div id="ai-magic-loading" class="hidden bg-white rounded-xl shadow-lg border border-gray-100 p-8 text-center text-gray-500">
-        AI is generating insights…
+        Формируем понятный отчёт…
       </div>
       <div id="ai-magic-report" class="space-y-4">
         <!-- Секции отчёта подгружаются скриптом -->
@@ -83,7 +86,7 @@
           contentEl.textContent = data.content || '';
           errorEl.classList.add('hidden');
           if (documentId != null) {
-            document.getElementById('ai-magic-btn').classList.remove('hidden');
+            document.getElementById('ai-magic-btn-wrap').classList.remove('hidden');
           }
         })
         .catch(function (err) {
