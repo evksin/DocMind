@@ -408,9 +408,12 @@ def export_report(body: ExportReportRequest):
     Генерирует PDF из текста AI Magic отчёта и возвращает файл для скачивания.
     """
     try:
-        pdf_bytes = report_text_to_pdf(body.report_text)
+        text = (body.report_text or "").strip()
+        if not text:
+            text = " "
+        pdf_bytes = report_text_to_pdf(text)
     except Exception as e:
-        logger.exception("Ошибка генерации PDF отчёта")
+        logger.exception("Ошибка генерации PDF отчёта: %s", e)
         raise HTTPException(status_code=500, detail="Не удалось сформировать PDF.")
     return Response(
         content=pdf_bytes,
