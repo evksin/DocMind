@@ -27,11 +27,14 @@ def _load_prompt() -> str:
 
 
 def _get_document_text(document: Document) -> str:
-    """Извлекает текст документа с ограничением длины."""
+    """Извлекает текст документа с ограничением длины. Если файла нет — возвращает пояснение."""
     path = get_document_file_path(document)
     if not path.exists():
-        raise FileNotFoundError(f"Файл документа не найден: {path}")
-    text = extract_text(str(path), document.filename).strip()
+        return "[Текст документа недоступен — файл не найден (например, после перезапуска сервера). Ниже приведены сохранённые анализы.]"
+    try:
+        text = extract_text(str(path), document.filename).strip()
+    except (FileNotFoundError, OSError):
+        return "[Текст документа недоступен. Ниже приведены сохранённые анализы.]"
     if not text:
         return "[Текст документа пуст или не извлечён.]"
     if len(text) > MAX_DOCUMENT_CHARS:
