@@ -12,16 +12,28 @@ EXPLAIN_SIMPLE = "explain_simple"
 ANALYSIS_TYPES = (SUMMARY, ACTION_ITEMS, RISKS, EXPLAIN_SIMPLE)
 
 
-def get_system_prompt(analysis_type: str) -> str:
+# Роли аудитории (для персональности тона)
+AUDIENCE_OPTIONS = ("business", "legal", "manager", "student")
+
+
+def get_system_prompt(analysis_type: str, audience: str | None = None) -> str:
     """
     Возвращает системный промпт (инструкцию) для выбранного типа анализа.
-    Текст документа передаётся отдельно в user-сообщении.
+    audience: для кого документ (business, legal, manager, student) — влияет на тон.
     """
     base = (
         "Ты — помощник по анализу документов. "
         "Отвечай кратко, по делу, простыми словами (без сложных терминов). "
         "Форматируй ответ структурированно: списки, короткие абзацы.\n\n"
     )
+    if audience:
+        role_hint = {
+            "business": "Документ для бизнес-аудитории: тон деловой, акцент на выгодах и решениях.",
+            "legal": "Документ для юридической аудитории: точность формулировок, внимание к обязательствам и рискам.",
+            "manager": "Документ для руководителя: краткость, выводы и следующие шаги.",
+            "student": "Документ для студента: объясняй доступно, без лишнего жаргона.",
+        }.get(audience.lower(), f"Учитывай, что документ для аудитории: {audience}.")
+        base = base + role_hint + "\n\n"
     if analysis_type == SUMMARY:
         return (
             base

@@ -6,7 +6,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <title>DocMind — Результат анализа</title>
 </head>
-<body class="min-h-screen bg-gray-50">
+<body class="min-h-screen bg-gray-50 flex flex-col">
   <header class="bg-white border-b border-gray-200 shadow-sm">
     <div class="max-w-4xl mx-auto px-8 py-4 flex justify-between items-center">
       <div>
@@ -16,7 +16,8 @@
       <a id="link-dashboard" href="dashboard.html" class="text-blue-600 hover:text-blue-800 font-medium transition duration-200 ease-in-out">← Назад к дашборду</a>
     </div>
   </header>
-  <main class="max-w-4xl mx-auto px-8 py-10">
+  <div class="flex flex-col lg:flex-row max-w-5xl mx-auto px-8 py-10 gap-8 flex-1">
+  <main class="flex-1 min-w-0">
     <h2 class="text-lg font-medium text-gray-900 mb-6">Результат анализа</h2>
     <div id="result-content" class="bg-white rounded-xl shadow-lg border border-gray-100 p-6 text-gray-600 leading-relaxed whitespace-pre-wrap min-h-[120px]">
       <!-- Контент подгружается скриптом -->
@@ -24,25 +25,58 @@
     <p id="result-error" class="hidden mt-3 text-sm text-red-600"></p>
     <div class="mt-6 flex flex-wrap items-end gap-4">
       <div class="hidden flex flex-col gap-1" id="ai-magic-btn-wrap">
-        <button id="ai-magic-btn" type="button" title="Превращает анализ в понятный отчёт" class="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-medium rounded-lg shadow transition duration-200 ease-in-out">
-          ✨ Улучшить результат
-        </button>
+        <div class="flex flex-wrap items-center gap-3">
+          <label for="ai-magic-audience" class="text-sm font-medium text-gray-700">Для кого отчёт:</label>
+          <select id="ai-magic-audience" class="px-3 py-2 border border-gray-200 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="manager">Руководитель</option>
+            <option value="business">Бизнес</option>
+            <option value="legal">Юрист</option>
+            <option value="student">Студент</option>
+          </select>
+          <button id="ai-magic-btn" type="button" title="Превращает анализ в понятный отчёт" class="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-medium rounded-lg shadow transition duration-200 ease-in-out">
+            ✨ Улучшить результат
+          </button>
+        </div>
         <span class="text-xs text-gray-500 max-w-[280px]">Превращает анализ в понятный отчёт</span>
       </div>
       <a id="link-dashboard-2" href="dashboard.html" class="inline-block text-blue-600 hover:text-blue-800 font-medium transition duration-200 ease-in-out pb-2">Назад к дашборду</a>
     </div>
 
     <div id="ai-magic-section" class="hidden mt-10">
-      <h3 class="text-lg font-medium text-gray-900 mb-4">Понятный отчёт</h3>
+      <h3 class="text-lg font-medium text-gray-900 mb-4">Понятный отчёт (AI Magic)</h3>
       <div id="ai-magic-loading" class="hidden bg-white rounded-xl shadow-lg border border-gray-100 p-8 text-center text-gray-500">
         Формируем понятный отчёт…
       </div>
       <div id="ai-magic-report" class="space-y-4">
         <!-- Секции отчёта подгружаются скриптом -->
       </div>
+      <div id="export-report-wrap" class="hidden mt-4">
+        <button id="export-report-btn" type="button" class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg border border-gray-200 transition duration-200 ease-in-out">
+          📄 Скачать отчёт (PDF)
+        </button>
+      </div>
+      <div id="explain-ai-wrap" class="hidden mt-6">
+        <button id="explain-ai-btn" type="button" class="text-sm text-gray-600 hover:text-blue-600 font-medium">Почему ИИ так сказал?</button>
+        <div id="explain-ai-block" class="hidden mt-3 p-4 bg-gray-50 rounded-lg border border-gray-100 text-sm text-gray-600">
+          <p class="mb-2">Отчёт сформирован на основе:</p>
+          <ul id="explain-ai-sources" class="list-disc list-inside space-y-1"></ul>
+          <p class="mt-2">Модель объединила текст документа и результаты анализа в единый структурированный отчёт.</p>
+        </div>
+      </div>
       <p id="ai-magic-error" class="hidden mt-3 text-sm text-red-600"></p>
     </div>
   </main>
+  <aside id="document-history-sidebar" class="w-full lg:w-64 shrink-0">
+    <h3 class="text-sm font-semibold text-gray-700 mb-3">Ранее загруженные</h3>
+    <ul id="document-history-list" class="space-y-2 text-sm">
+      <li class="text-gray-400">Загрузка…</li>
+    </ul>
+    <a id="document-history-dashboard-link" href="dashboard.html" class="mt-2 inline-block text-blue-600 hover:text-blue-800 text-sm font-medium">Все документы →</a>
+  </aside>
+  </div>
+  <footer class="mt-auto border-t border-gray-200 bg-white py-4 text-center text-sm text-gray-500">
+    Powered by AI • Built with Cursor • Hackathon Project
+  </footer>
   <script>
     (function () {
       function extractDetail(d) {
@@ -68,6 +102,7 @@
       var contentEl = document.getElementById('result-content');
       var errorEl = document.getElementById('result-error');
       var documentId = null;
+      var lastReportText = '';
 
       if (!resultId) {
         contentEl.textContent = '';
@@ -113,7 +148,7 @@
         fetch('/api/ai-magic', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ document_id: documentId })
+          body: JSON.stringify({ document_id: documentId, audience: (document.getElementById('ai-magic-audience') && document.getElementById('ai-magic-audience').value) || null })
         })
           .then(function (r) {
             if (!r.ok) return r.json().then(function (d) { throw new Error(extractDetail(d) || r.statusText); }, function () { throw new Error(r.statusText); });
@@ -123,6 +158,7 @@
             loading.classList.add('hidden');
             btn.disabled = false;
             var report = (data.report || '').trim();
+            lastReportText = report;
             if (!report) {
               reportEl.innerHTML = '<p class="text-gray-500">Пустой ответ.</p>';
               return;
@@ -134,13 +170,31 @@
               var firstLineEnd = part.indexOf('\n');
               var title = firstLineEnd > 0 ? part.substring(0, firstLineEnd).trim() : part;
               var body = firstLineEnd > 0 ? part.substring(firstLineEnd + 1).trim() : '';
+              var titleLower = title.toLowerCase();
+              var cardClass = 'rounded-xl shadow-sm border border-gray-100 p-5 ';
+              if (/risks?|red\s*flags?/.test(titleLower)) {
+                cardClass += 'bg-red-50/50 border-l-4 border-l-red-500';
+              } else if (/opportunit(y|ies)/.test(titleLower)) {
+                cardClass += 'bg-green-50/50 border-l-4 border-l-green-600';
+              } else if (/recommendations?/.test(titleLower)) {
+                cardClass += 'bg-blue-50/50 border-l-4 border-l-blue-500';
+              } else {
+                cardClass += 'bg-white';
+              }
               var card = document.createElement('div');
-              card.className = 'bg-white rounded-xl shadow-sm border border-gray-100 p-5';
-              card.innerHTML = '<h4 class="text-gray-900 font-medium mb-2">' + escapeHtml(title) + '</h4><div class="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">' + escapeHtml(body) + '</div>';
+              card.className = cardClass;
+              card.innerHTML = '<h4 class="text-gray-900 font-medium mb-2">' + escapeHtml(title) + '</h4><div class="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">' + emphasizePhrases(escapeHtml(body)) + '</div>';
               reportEl.appendChild(card);
             });
             if (reportEl.children.length === 0) {
               reportEl.innerHTML = '<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 text-gray-600 leading-relaxed whitespace-pre-wrap">' + escapeHtml(report) + '</div>';
+            }
+            var downloadWrap = document.getElementById('export-report-wrap');
+            if (downloadWrap) downloadWrap.classList.remove('hidden');
+            var explainWrap = document.getElementById('explain-ai-wrap');
+            if (explainWrap) {
+              explainWrap.classList.remove('hidden');
+              loadExplainAiSources(documentId);
             }
           })
           .catch(function (err) {
@@ -151,11 +205,102 @@
           });
       });
 
+      document.getElementById('export-report-btn').addEventListener('click', function () {
+        if (!lastReportText) return;
+        var btn = document.getElementById('export-report-btn');
+        btn.disabled = true;
+        fetch('/api/export-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ report_text: lastReportText })
+        })
+          .then(function (r) {
+            if (!r.ok) return r.json().then(function (d) { throw new Error(extractDetail(d) || r.statusText); }, function () { throw new Error(r.statusText); });
+            return r.blob();
+          })
+          .then(function (blob) {
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'DocMind_Report.pdf';
+            a.click();
+            URL.revokeObjectURL(url);
+          })
+          .catch(function (err) {
+            var magicError = document.getElementById('ai-magic-error');
+            magicError.textContent = userFriendlyMessage(err);
+            magicError.classList.remove('hidden');
+          })
+          .finally(function () { btn.disabled = false; });
+      });
+
+      (function loadDocumentHistory() {
+        var listEl = document.getElementById('document-history-list');
+        var dashLink = document.getElementById('document-history-dashboard-link');
+        if (!userId || !listEl) return;
+        dashLink.href = dashboardHref;
+        fetch('/api/users/' + encodeURIComponent(userId) + '/documents')
+          .then(function (r) {
+            if (!r.ok) return r.json().then(function (d) { throw new Error(extractDetail(d)); }, function () { throw new Error(); });
+            return r.json();
+          })
+          .then(function (docs) {
+            listEl.innerHTML = '';
+            if (!docs || docs.length === 0) {
+              listEl.innerHTML = '<li class="text-gray-400">Нет загруженных документов</li>';
+              return;
+            }
+            docs.slice(0, 10).forEach(function (d) {
+              var li = document.createElement('li');
+              var a = document.createElement('a');
+              a.href = 'analyze.html?document_id=' + encodeURIComponent(d.id) + '&user_id=' + encodeURIComponent(userId);
+              a.className = 'text-blue-600 hover:text-blue-800 truncate block';
+              a.textContent = d.filename || 'Document #' + d.id;
+              li.appendChild(a);
+              listEl.appendChild(li);
+            });
+          })
+          .catch(function () {
+            listEl.innerHTML = '<li class="text-gray-400">Не удалось загрузить список</li>';
+          });
+      })();
+
       function escapeHtml(s) {
         if (s == null) return '';
         var div = document.createElement('div');
         div.textContent = s;
         return div.innerHTML;
+      }
+      function emphasizePhrases(htmlSafeText) {
+        return htmlSafeText.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold text-gray-800">$1</strong>');
+      }
+
+      document.getElementById('explain-ai-btn').addEventListener('click', function () {
+        var block = document.getElementById('explain-ai-block');
+        block.classList.toggle('hidden');
+      });
+
+      function loadExplainAiSources(docId) {
+        var listEl = document.getElementById('explain-ai-sources');
+        if (!docId || !listEl) return;
+        fetch('/api/documents/' + encodeURIComponent(docId) + '/results')
+          .then(function (r) {
+            if (!r.ok) return [];
+            return r.json();
+          })
+          .then(function (results) {
+            listEl.innerHTML = '';
+            var types = { summary: 'Краткое изложение', action_items: 'Действия', risks: 'Риски', explain_simple: 'Объяснение простыми словами' };
+            var li = document.createElement('li');
+            li.textContent = 'Текст загруженного документа';
+            listEl.appendChild(li);
+            (results || []).forEach(function (r) {
+              var item = document.createElement('li');
+              item.textContent = 'Анализ: ' + (types[r.analysis_type] || r.analysis_type);
+              listEl.appendChild(item);
+            });
+          })
+          .catch(function () { listEl.innerHTML = '<li>Документ и сохранённые анализы</li>'; });
       }
     })();
   </script>

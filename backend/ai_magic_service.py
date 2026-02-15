@@ -61,9 +61,10 @@ def _get_structured_analysis(document_id: int, db) -> str:
     return "\n\n".join(parts)
 
 
-def run_ai_magic(document_id: int, db) -> str:
+def run_ai_magic(document_id: int, db, audience: str | None = None) -> str:
     """
-    Строит AI Magic отчёт: загружает промпт, документ и анализы, вызывает LLM, возвращает отчёт.
+    Строит AI Magic отчёт: загружает промпт, документ и анализы, вызывает LLM.
+    audience: для кого отчёт (business, legal, manager, student) — влияет на тон.
     """
     document = db.query(Document).filter(Document.id == document_id).first()
     if not document:
@@ -79,5 +80,14 @@ def run_ai_magic(document_id: int, db) -> str:
         "Structured analysis (extracted by the system):\n\n"
         f"{analysis_text}"
     )
+    if audience:
+        role_labels = {
+            "business": "бизнес",
+            "legal": "юридическая",
+            "manager": "руководитель",
+            "student": "студент",
+        }
+        label = role_labels.get(audience.lower(), audience)
+        user_content = user_content + f"\n\nОтчёт предназначен для аудитории: {label}. Учитывай это в тоне и формулировках."
 
     return complete(system_prompt, user_content)

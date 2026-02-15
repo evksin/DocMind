@@ -18,12 +18,14 @@
     <p id="error-line" class="hidden mt-4 text-sm text-red-600"></p>
     <a id="back-link" href="dashboard.html" class="hidden mt-4 inline-block text-blue-600 hover:text-blue-800 font-medium">← Назад к дашборду</a>
   </div>
+  <footer class="mt-auto w-full py-4 text-center text-sm text-gray-500">Powered by AI • Built with Cursor • Hackathon Project</footer>
   <script>
     (function () {
       var params = new URLSearchParams(window.location.search);
       var documentId = params.get('document_id');
       var userId = params.get('user_id');
       var analysisType = params.get('analysis_type');
+      var audience = params.get('audience') || null;
       var filename = params.get('filename') ? decodeURIComponent(params.get('filename')) : '';
 
       var statusEl = document.getElementById('status-line');
@@ -74,7 +76,8 @@
         body: JSON.stringify({
           document_id: parseInt(documentId, 10),
           analysis_type: analysisType,
-          user_id: parseInt(userId, 10)
+          user_id: parseInt(userId, 10),
+          audience: audience || null
         })
       })
         .then(function (r) {

@@ -13,16 +13,18 @@ logger = logging.getLogger(__name__)
 
 from fastapi import Depends, File, FastAPI, HTTPException, UploadFile
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import FileResponse
+from starlette.responses import FileResponse, Response
 from starlette.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from backend.ai_magic_service import run_ai_magic
 from backend.analysis_service import run_analysis
+from backend.demo_document import DEMO_FILENAME, get_demo_pdf_bytes
 from backend.database import Base, SessionLocal, engine, get_db
 from backend import models  # регистрация моделей у Base
 from backend.file_upload import delete_document_file, ensure_uploads_dir, save_upload
+from backend.report_pdf import report_text_to_pdf
 
 
 # --- Схемы запросов/ответов ---
@@ -63,7 +65,8 @@ class AnalyzeRequest(BaseModel):
         ...,
         description="summary | action_items | risks | explain_simple",
     )
-    user_id: int | None = None  # если задан — проверяем, что документ принадлежит пользователю
+    user_id: int | None = None
+    audience: str | None = Field(None, description="business | legal | manager | student")
 
 
 class AnalyzeResponse(BaseModel):
@@ -97,12 +100,32 @@ class AIMagicRequest(BaseModel):
     """Тело POST /api/ai-magic."""
 
     document_id: int
+    audience: str | None = Field(None, description="business | legal | manager | student")
 
 
 class AIMagicResponse(BaseModel):
     """Ответ AI Magic — консалтинговый отчёт."""
 
     report: str
+
+
+class ExportReportRequest(BaseModel):
+    """Тело POST /api/export-report — текст отчёта для экспорта в PDF."""
+
+    report_text: str = Field(..., description="Текст AI Magic отчёта")
+
+
+class DemoRunRequest(BaseModel):
+    """Тело POST /api/demo/run."""
+
+    user_id: int
+
+
+class DemoRunResponse(BaseModel):
+    """Ответ демо-режима: document_id и result_id для редиректа на результат."""
+
+    document_id: int
+    result_id: int
 
 
 @asynccontextmanager
@@ -264,7 +287,7 @@ def analyze(body: AnalyzeRequest, db: Session = Depends(get_db)):
         if not doc:
             raise HTTPException(status_code=404, detail="Документ не найден")
     try:
-        result = run_analysis(body.document_id, body.analysis_type, db)
+        result = run_analysis(body.document_id, body.analysis_type, db, audience=body.audience)
         return AnalyzeResponse(result_id=result.id, content=result.content)
     except ValueError as e:
         msg = str(e)
@@ -322,6 +345,27 @@ def get_result(result_id: int, db: Session = Depends(get_db)):
     )
 
 
+@app.post("/api/demo/run", response_model=DemoRunResponse)
+def demo_run(body: DemoRunRequest, db: Session = Depends(get_db)):
+    """
+    Загружает демо-документ для пользователя, запускает анализ (summary), возвращает result_id.
+    Для кнопки «Use demo document» — судьи видят результат без загрузки файла.
+    """
+    from backend.models import User
+
+    user = db.query(User).filter(User.id == body.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    try:
+        content = get_demo_pdf_bytes()
+        doc = save_upload(content, DEMO_FILENAME, body.user_id, db)
+        result = run_analysis(doc.id, "summary", db, audience=None)
+        return DemoRunResponse(document_id=doc.id, result_id=result.id)
+    except Exception as e:
+        logger.exception("Ошибка демо-режима")
+        raise HTTPException(status_code=500, detail="Не удалось запустить демо.")
+
+
 @app.post("/api/ai-magic", response_model=AIMagicResponse)
 def ai_magic(body: AIMagicRequest, db: Session = Depends(get_db)):
     """
@@ -329,7 +373,7 @@ def ai_magic(body: AIMagicRequest, db: Session = Depends(get_db)):
     Промпт загружается из docs/AI_MAGIC_PROMPT.md.
     """
     try:
-        report = run_ai_magic(body.document_id, db)
+        report = run_ai_magic(body.document_id, db, audience=body.audience)
         return AIMagicResponse(report=report)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -349,6 +393,23 @@ def ai_magic(body: AIMagicRequest, db: Session = Depends(get_db)):
         if len(msg) > 300:
             msg = msg[:297] + "..."
         raise HTTPException(status_code=502, detail=msg or "Ошибка при генерации отчёта.")
+
+
+@app.post("/api/export-report")
+def export_report(body: ExportReportRequest):
+    """
+    Генерирует PDF из текста AI Magic отчёта и возвращает файл для скачивания.
+    """
+    try:
+        pdf_bytes = report_text_to_pdf(body.report_text)
+    except Exception as e:
+        logger.exception("Ошибка генерации PDF отчёта")
+        raise HTTPException(status_code=500, detail="Не удалось сформировать PDF.")
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": 'attachment; filename="DocMind_Report.pdf"'},
+    )
 
 
 @app.get("/debug/db")

@@ -9,13 +9,10 @@ from backend.openai_client import complete
 from backend.prompts import ANALYSIS_TYPES, get_system_prompt, get_user_content
 
 
-def run_analysis(document_id: int, analysis_type: str, db) -> Result:
+def run_analysis(document_id: int, analysis_type: str, db, audience: str | None = None) -> Result:
     """
     Запускает анализ документа по типу, сохраняет результат в БД и возвращает его.
-    - Загружает Document по document_id, извлекает текст из файла.
-    - Подставляет промпт по analysis_type, вызывает OpenAI.
-    - Создаёт запись Result и возвращает её.
-    Выбрасывает ValueError при неизвестном document_id или analysis_type.
+    audience: для кого документ (business, legal, manager, student) — влияет на тон.
     """
     if analysis_type not in ANALYSIS_TYPES:
         raise ValueError(
@@ -28,7 +25,7 @@ def run_analysis(document_id: int, analysis_type: str, db) -> Result:
     if not path.exists():
         raise FileNotFoundError(f"Файл документа не найден: {path}")
     text = extract_text(str(path), document.filename)
-    system_prompt = get_system_prompt(analysis_type)
+    system_prompt = get_system_prompt(analysis_type, audience)
     user_content = get_user_content(text)
     content = complete(system_prompt, user_content)
     result = Result(

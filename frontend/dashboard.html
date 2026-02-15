@@ -6,7 +6,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <title>DocMind — Дашборд</title>
 </head>
-<body class="min-h-screen bg-gray-50">
+<body class="min-h-screen bg-gray-50 flex flex-col">
   <header class="bg-white border-b border-gray-200 shadow-sm">
     <div class="max-w-4xl mx-auto px-8 py-4 flex justify-between items-center">
       <div>
@@ -16,17 +16,23 @@
       <p class="text-sm text-gray-400"><span id="username">—</span></p>
     </div>
   </header>
-  <main class="max-w-4xl mx-auto px-8 py-10">
-    <div class="flex justify-between items-center mb-6">
+  <main class="max-w-4xl mx-auto px-8 py-10 flex-1">
+    <div class="flex justify-between items-center mb-6 flex-wrap gap-3">
       <h2 class="text-lg font-medium text-gray-900">Мои документы</h2>
-      <a id="link-upload" href="upload.html" class="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-medium rounded-lg shadow transition duration-200 ease-in-out">
-        Загрузить документ
-      </a>
+      <div class="flex items-center gap-2">
+        <button type="button" id="demo-btn" class="inline-flex items-center px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition duration-200 ease-in-out">
+          📄 Use demo document
+        </button>
+        <a id="link-upload" href="upload.html" class="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-medium rounded-lg shadow transition duration-200 ease-in-out">
+          Загрузить документ
+        </a>
+      </div>
     </div>
     <ul id="documents-list" class="space-y-4">
       <!-- Список подгружается скриптом -->
     </ul>
   </main>
+  <footer class="mt-auto border-t border-gray-200 bg-white py-4 text-center text-sm text-gray-500">Powered by AI • Built with Cursor • Hackathon Project</footer>
   <script>
     (function () {
       var params = new URLSearchParams(window.location.search);
@@ -105,6 +111,29 @@
       }
       loadDocs().catch(function (err) {
         listEl.innerHTML = '<li class="bg-white rounded-xl shadow-sm border border-gray-100 px-6 py-12 text-center text-sm text-red-600">' + escapeHtml(userFriendlyMessage(err)) + '</li>';
+      });
+
+      document.getElementById('demo-btn').addEventListener('click', function () {
+        var btn = document.getElementById('demo-btn');
+        btn.disabled = true;
+        btn.textContent = 'Загрузка…';
+        fetch('/api/demo/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: parseInt(userId, 10) })
+        })
+          .then(function (r) {
+            if (!r.ok) return r.json().then(function (d) { throw new Error(extractDetail(d) || r.statusText); }, function () { throw new Error(r.statusText); });
+            return r.json();
+          })
+          .then(function (data) {
+            window.location.href = 'result.html?result_id=' + encodeURIComponent(data.result_id) + '&user_id=' + encodeURIComponent(userId);
+          })
+          .catch(function (err) {
+            alert(userFriendlyMessage(err));
+            btn.disabled = false;
+            btn.textContent = '📄 Use demo document';
+          });
       });
     })();
   </script>
