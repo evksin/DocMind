@@ -13,12 +13,12 @@
 <body class="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-8 py-10">
   <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-10 max-w-md w-full text-center">
     <div class="spinner w-12 h-12 border-4 border-gray-200 border-t-blue-600 rounded-full mx-auto mb-6"></div>
-    <p id="filename-line" class="text-gray-900 font-medium mb-2 truncate">Analyzing your document...</p>
-    <p id="status-line" class="text-gray-600 text-sm">Reading document...</p>
+    <p id="filename-line" class="text-gray-900 font-medium mb-2 truncate">Анализируем документ…</p>
+    <p id="status-line" class="text-gray-600 text-sm">Читаем документ…</p>
     <p id="error-line" class="hidden mt-4 text-sm text-red-600"></p>
     <a id="back-link" href="dashboard.html" class="hidden mt-4 inline-block text-blue-600 hover:text-blue-800 font-medium">← Назад к дашборду</a>
   </div>
-  <footer class="mt-auto w-full py-4 text-center text-sm text-gray-500">Powered by AI • Built with Cursor • Hackathon Project</footer>
+  <footer class="mt-auto w-full py-4 text-center text-sm text-gray-500">На базе ИИ • Сделано в Cursor • Проект хакатона</footer>
   <script>
     (function () {
       var params = new URLSearchParams(window.location.search);
@@ -34,11 +34,11 @@
       var backLink = document.getElementById('back-link');
 
       var messages = [
-        'Reading document...',
-        'Extracting key points...',
-        'Understanding context...',
-        'Generating summary...',
-        'Checking for risks...'
+        'Читаем документ…',
+        'Выделяем ключевые моменты…',
+        'Учитываем контекст…',
+        'Формируем изложение…',
+        'Проверяем риски…'
       ];
       var msgIndex = 0;
       var messageInterval = setInterval(function () {
@@ -49,9 +49,9 @@
       }, 1500);
 
       if (filename) {
-        filenameEl.textContent = 'Analyzing ' + filename;
+        filenameEl.textContent = 'Анализируем: ' + filename;
       } else {
-        filenameEl.textContent = 'Analyzing your document...';
+        filenameEl.textContent = 'Анализируем документ…';
       }
 
       function stopAndShowError(msg) {

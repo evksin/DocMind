@@ -11,7 +11,7 @@
     <div class="max-w-4xl mx-auto px-8 py-4 flex justify-between items-center">
       <div>
         <h1 class="text-2xl font-semibold text-gray-900">DocMind</h1>
-        <p class="text-sm text-gray-500">AI Document Intelligence</p>
+        <p class="text-sm text-gray-500">Умный анализ документов</p>
       </div>
       <a id="link-dashboard" href="dashboard.html" class="text-blue-600 hover:text-blue-800 font-medium transition duration-200 ease-in-out">← Назад к дашборду</a>
     </div>
@@ -75,7 +75,7 @@
   </aside>
   </div>
   <footer class="mt-auto border-t border-gray-200 bg-white py-4 text-center text-sm text-gray-500">
-    Powered by AI • Built with Cursor • Hackathon Project
+    На базе ИИ • Сделано в Cursor • Проект хакатона
   </footer>
   <script>
     (function () {
@@ -222,7 +222,7 @@
             var url = URL.createObjectURL(blob);
             var a = document.createElement('a');
             a.href = url;
-            a.download = 'DocMind_Report.pdf';
+            a.download = 'DocMind_Отчёт.pdf';
             a.click();
             URL.revokeObjectURL(url);
           })
@@ -255,7 +255,7 @@
               var a = document.createElement('a');
               a.href = 'analyze.html?document_id=' + encodeURIComponent(d.id) + '&user_id=' + encodeURIComponent(userId);
               a.className = 'text-blue-600 hover:text-blue-800 truncate block';
-              a.textContent = d.filename || 'Document #' + d.id;
+              a.textContent = d.filename || 'Документ №' + d.id;
               li.appendChild(a);
               listEl.appendChild(li);
             });
