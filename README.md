@@ -8,6 +8,12 @@ I build **AI-powered applications**, **startup-ready platforms** and **modern we
 
 ## 🚀 My flagship projects
 
+<p align="center">
+  <a href="https://docmind-26tr.onrender.com" target="_blank">
+    <img src="https://img.shields.io/badge/Try%20DocMind-Live%20Demo-brightgreen?style=for-the-badge"/>
+  </a>
+</p>
+
 ### 🧠 DocMind  
 AI-powered document intelligence platform  
 → Understand contracts, reports and documents using LLMs
