@@ -15,8 +15,15 @@ OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 # Модель: только DeepSeek через OpenRouter
 DEFAULT_MODEL = "deepseek/deepseek-chat"
 
-# Лимит токенов ответа (укладываемся в бесплатный лимит OpenRouter; при 402 — уменьшить)
-MAX_TOKENS = 1200
+# Лимит токенов ответа. При 402 (недостаточно кредитов) уменьшите или задайте OPENROUTER_MAX_TOKENS в .env
+def _max_tokens() -> int:
+    v = os.environ.get("OPENROUTER_MAX_TOKENS")
+    if v is not None:
+        try:
+            return max(100, min(4096, int(v)))
+        except ValueError:
+            pass
+    return 700  # укладываемся в типичный бесплатный лимит (~738)
 
 
 def get_api_key() -> str | None:
@@ -46,7 +53,7 @@ def complete(system_prompt: str, user_content: str, model: str | None = None) ->
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_content},
         ],
-        max_tokens=MAX_TOKENS,
+        max_tokens=_max_tokens(),
     )
     message = response.choices[0].message
     if not message or not message.content:
