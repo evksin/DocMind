@@ -23,7 +23,7 @@ def _max_tokens() -> int:
             return max(100, min(4096, int(v)))
         except ValueError:
             pass
-    return 700  # укладываемся в типичный бесплатный лимит (~738)
+    return 1200  # при пополненном балансе — более полные ответы; при 402 задайте OPENROUTER_MAX_TOKENS меньше
 
 
 def get_api_key() -> str | None:
